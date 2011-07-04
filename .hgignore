@@ -16,3 +16,6 @@ glob:*.suo
 glob:*.itrace.csdef
 glob:*.build.csdef
 syntax: glob
+*.swp
+packages\**
+!packages\repositories.config
