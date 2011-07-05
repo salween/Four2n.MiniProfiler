@@ -1,10 +1,14 @@
-﻿namespace Four2n.Orchard.MiniProfiler.Filters
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="ProfilerFilter.cs" company="Daniel Dabrowski - rod.42n.pl">
+//   Copyright (c) 42n.pl All rights reserved.
+// </copyright>
+// <summary>
+//   Defines the ProfilerFilter type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace Four2n.Orchard.MiniProfiler.Filters
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
 
@@ -14,59 +18,56 @@
     using global::Orchard.Security;
     using global::Orchard.UI.Admin;
 
-    using MiniProfiler = MvcMiniProfiler.MiniProfiler;
-
-    public class ProfilerFilter : FilterProvider, IActionFilter, IResultFilter
+    /// <summary>
+    /// Filter for injecting profiler view code.
+    /// </summary>
+    public class ProfilerFilter : FilterProvider, IResultFilter
     {
-        private readonly WorkContext _workContext;
-        private readonly IAuthorizer _authorizer;
-        private readonly dynamic _shapeFactory;
+        private readonly WorkContext workContext;
+        private readonly IAuthorizer authorizer;
+        private readonly dynamic shapeFactory;
 
         public ProfilerFilter(WorkContext workContext, IAuthorizer authorizer, IShapeFactory shapeFactory)
         {
-            this._workContext = workContext;
-            this._shapeFactory = shapeFactory;
-            this._authorizer = authorizer;
-        }
-
-        public void OnActionExecuting(ActionExecutingContext filterContext)
-        {
-            MiniProfiler.Start();
-        }
-
-        public void OnActionExecuted(ActionExecutedContext filterContext)
-        {
+            this.workContext = workContext;
+            this.shapeFactory = shapeFactory;
+            this.authorizer = authorizer;
         }
 
         public void OnResultExecuting(ResultExecutingContext filterContext)
         {
             // should only run on a full view rendering result
             if (!(filterContext.Result is ViewResult))
-                return;
-
-            if (!IsActivable())
             {
                 return;
             }
 
-            var head = _workContext.Layout.Head;
-            head.Add(_shapeFactory.MiniProfilerTemplate());
+            if (!this.IsActivable())
+            {
+                return;
+            }
+
+            var head = this.workContext.Layout.Head;
+            head.Add(this.shapeFactory.MiniProfilerTemplate());
         }
 
         public void OnResultExecuted(ResultExecutedContext filterContext)
         {
-            MiniProfiler.Stop();
         }
 
         private bool IsActivable()
         {
             // activate on front-end only
-            if (AdminFilter.IsApplied(new RequestContext(_workContext.HttpContext, new RouteData())))
+            if (AdminFilter.IsApplied(new RequestContext(this.workContext.HttpContext, new RouteData())))
+            {
                 return false;
+            }
 
             // if not logged as a site owner, still activate if it's a local request (development machine)
-            if (!_authorizer.Authorize(StandardPermissions.SiteOwner))
-                return _workContext.HttpContext.Request.IsLocal;
+            if (!this.authorizer.Authorize(StandardPermissions.SiteOwner))
+            {
+                return this.workContext.HttpContext.Request.IsLocal;
+            }
 
             return true;
         }
