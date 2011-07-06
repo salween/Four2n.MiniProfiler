@@ -89,6 +89,7 @@
     <Compile Include="ContainerModule.cs" />
     <Compile Include="Eventer.cs" />
     <Compile Include="Filters\ProfilerFilter.cs" />
+    <Compile Include="MiniProfilerExtensions.cs" />
     <Compile Include="OrchardHostProxyLogger.cs" />
   </ItemGroup>
   <ItemGroup>
