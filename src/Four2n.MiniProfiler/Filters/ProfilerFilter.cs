@@ -1,7 +1,10 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ProfilerFilter.cs" company="Daniel Dabrowski - rod.42n.pl">
-//   Copyright (c) 42n.pl All rights reserved.
+//   Copyright (c) 2008 Daniel Dabrowski - 42n. All rights reserved.
 // </copyright>
+// <summary>
+//   Filter for injecting profiler view code.
+// </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Four2n.Orchard.MiniProfiler.Filters

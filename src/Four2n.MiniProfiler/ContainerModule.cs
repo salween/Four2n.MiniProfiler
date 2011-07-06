@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ContainerModule.cs" company="Daniel Dabrowski - rod.42n.pl">
-//   Copyright (c) 42n.pl All rights reserved.
+//   Copyright (c) 2008 Daniel Dabrowski - 42n. All rights reserved.
 // </copyright>
 // <summary>
 //   Defines the ContainerModule type.
@@ -24,7 +24,8 @@ namespace Four2n.Orchard.MiniProfiler
             this.orchardHost = orchardHost;
         }
 
-        protected override void Load(ContainerBuilder moduleBuilder) {
+        protected override void Load(ContainerBuilder moduleBuilder)
+        {
             var currentLogger = ((DefaultOrchardHost)this.orchardHost).Logger;
             if (currentLogger is OrchardHostProxyLogger)
             {
