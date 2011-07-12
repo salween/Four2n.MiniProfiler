@@ -44,9 +44,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\build\orchard\bin\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="FluentNHibernate">
+      <HintPath>..\..\build\orchard\bin\FluentNHibernate.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MvcMiniProfiler">
       <HintPath>..\..\packages\MiniProfiler.1.4\lib\MvcMiniProfiler.dll</HintPath>
+    </Reference>
+    <Reference Include="NHibernate">
+      <HintPath>..\..\build\orchard\bin\NHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Orchard.Core">
       <HintPath>..\..\build\orchard\bin\Orchard.Core.dll</HintPath>
@@ -87,9 +93,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContainerModule.cs" />
+    <Compile Include="Data\Providers\ProfiledSqlCeDataServicesProvider.cs" />
+    <Compile Include="Data\Providers\ProfiledSqlClientDriver.cs" />
+    <Compile Include="Data\Providers\ProfiledSqlServerCeDriver.cs" />
+    <Compile Include="Data\Providers\ProfiledSqlServerDataServicesProvider.cs" />
     <Compile Include="Eventer.cs" />
     <Compile Include="Filters\ProfilerFilter.cs" />
     <Compile Include="MiniProfilerExtensions.cs" />
+    <Compile Include="Models\DummyRecord.cs" />
     <Compile Include="OrchardHostProxyLogger.cs" />
   </ItemGroup>
   <ItemGroup>
