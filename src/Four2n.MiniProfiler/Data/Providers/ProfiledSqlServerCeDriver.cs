@@ -11,6 +11,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
 {
     using System.Data;
     using System.Data.Common;
+    using System.Diagnostics;
 
     using MvcMiniProfiler.Data;
 
@@ -20,6 +21,13 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
     {
         public override IDbCommand CreateCommand()
         {
+            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlServerCeDriver - CreateCommand ");
+            if (MvcMiniProfiler.MiniProfiler.Current == null)
+            {
+                return base.CreateCommand();
+            }
+
+            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlServerCeDriver - CreateCommand Profiling");
             return new ProfiledDbCommand(
                 base.CreateCommand() as DbCommand,
                 null,
@@ -28,6 +36,13 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
 
         public override IDbConnection CreateConnection()
         {
+            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlServerCeDriver - CreateConnection ");
+            if (MvcMiniProfiler.MiniProfiler.Current == null)
+            {
+                return base.CreateConnection();
+            }
+
+            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlServerCeDriver - CreateConnection Profiling");
             return ProfiledDbConnection.Get(
                 base.CreateConnection() as DbConnection,
                 MvcMiniProfiler.MiniProfiler.Current);

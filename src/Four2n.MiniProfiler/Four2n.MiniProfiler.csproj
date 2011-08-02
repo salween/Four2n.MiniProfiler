@@ -48,8 +48,9 @@
       <HintPath>..\..\build\orchard\bin\FluentNHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="MvcMiniProfiler">
-      <HintPath>..\..\packages\MiniProfiler.1.4\lib\MvcMiniProfiler.dll</HintPath>
+    <Reference Include="MvcMiniProfiler, Version=1.7.0.0, Culture=neutral, PublicKeyToken=b44f9351044011a3, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\MiniProfiler\MvcMiniProfiler.dll</HintPath>
     </Reference>
     <Reference Include="NHibernate">
       <HintPath>..\..\build\orchard\bin\NHibernate.dll</HintPath>
@@ -86,10 +87,6 @@
     <Content Include="Styles\Web.config" />
     <Content Include="Properties\AssemblyInfo.cs" />
     <Content Include="Module.txt" />
-  </ItemGroup>
-  <ItemGroup />
-  <ItemGroup>
-    <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContainerModule.cs" />

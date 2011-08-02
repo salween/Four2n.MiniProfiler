@@ -9,6 +9,8 @@
 
 namespace Four2n.Orchard.MiniProfiler.Data.Providers
 {
+    using System.Diagnostics;
+
     using FluentNHibernate.Cfg.Db;
 
     using global::Orchard.Environment.Extensions;
@@ -21,9 +23,15 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
         {
         }
 
+        public static string ProviderName
+        {
+            get { return global::Orchard.Data.Providers.SqlServerDataServicesProvider.ProviderName; }
+        }
+
         public override IPersistenceConfigurer GetPersistenceConfigurer(bool createDatabase)
         {
             var persistence = (MsSqlConfiguration)base.GetPersistenceConfigurer(createDatabase);
+            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlServerDataServicesProvider - GetPersistenceConfigurer ");
             return persistence.Driver(typeof(ProfiledSqlClientDriver).AssemblyQualifiedName);
         }
     }
