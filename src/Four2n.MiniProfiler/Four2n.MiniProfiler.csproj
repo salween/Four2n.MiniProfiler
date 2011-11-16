@@ -99,6 +99,7 @@
     <Compile Include="MiniProfilerExtensions.cs" />
     <Compile Include="Models\DummyRecord.cs" />
     <Compile Include="OrchardHostProxyLogger.cs" />
+    <Compile Include="ShapeProfiling.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\MiniProfilerTemplate.cshtml" />
