@@ -43,7 +43,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
             }
 
             Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlServerCeDriver - CreateConnection Profiling");
-            return ProfiledDbConnection.Get(
+            return new ProfiledDbConnection(
                 base.CreateConnection() as DbConnection,
                 MvcMiniProfiler.MiniProfiler.Current);
         }

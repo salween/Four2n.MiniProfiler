@@ -4,6 +4,82 @@
         <name>MvcMiniProfiler</name>
     </assembly>
     <members>
+        <member name="T:MvcMiniProfiler.BaseProfilerProvider">
+            <summary>
+            BaseProfilerProvider.  This providers some helper methods which provide access to
+            internals not otherwise available.
+            To use, override the <see cref="M:MvcMiniProfiler.BaseProfilerProvider.Start(MvcMiniProfiler.ProfileLevel)"/>, <see cref="M:MvcMiniProfiler.BaseProfilerProvider.Stop(System.Boolean)"/> and <see cref="M:MvcMiniProfiler.BaseProfilerProvider.GetCurrentProfiler"/>
+            methods.
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.IProfilerProvider">
+            <summary>
+            A provider used to create <see cref="T:MvcMiniProfiler.MiniProfiler"/> instances and maintain the current instance.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.IProfilerProvider.Start(MvcMiniProfiler.ProfileLevel)">
+            <summary>
+            Starts a new MiniProfiler and sets it to be current.  By the end of this method
+            <see cref="M:MvcMiniProfiler.IProfilerProvider.GetCurrentProfiler"/> should return the new MiniProfiler.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.IProfilerProvider.Stop(System.Boolean)">
+            <summary>
+            Ends the current profiling session, if one exists.
+            </summary>
+            <param name="discardResults">
+            When true, clears the <see cref="P:MvcMiniProfiler.MiniProfiler.Current"/> for this HttpContext, allowing profiling to 
+            be prematurely stopped and discarded. Useful for when a specific route does not need to be profiled.
+            </param>
+        </member>
+        <member name="M:MvcMiniProfiler.IProfilerProvider.GetCurrentProfiler">
+            <summary>
+            Returns the current MiniProfiler.  This is used by <see cref="P:MvcMiniProfiler.MiniProfiler.Current"/>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.BaseProfilerProvider.Start(MvcMiniProfiler.ProfileLevel)">
+            <summary>
+            Starts a new MiniProfiler and sets it to be current.  By the end of this method
+            <see cref="M:MvcMiniProfiler.BaseProfilerProvider.GetCurrentProfiler"/> should return the new MiniProfiler.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.BaseProfilerProvider.Stop(System.Boolean)">
+            <summary>
+            Stops the current MiniProfiler (if any is currently running).
+            <see cref="M:MvcMiniProfiler.BaseProfilerProvider.SaveProfiler(MvcMiniProfiler.MiniProfiler)"/> should be called if <paramref name="discardResults"/> is false
+            </summary>
+            <param name="discardResults">If true, any current results will be thrown away and nothing saved</param>
+        </member>
+        <member name="M:MvcMiniProfiler.BaseProfilerProvider.GetCurrentProfiler">
+            <summary>
+            Returns the current MiniProfiler.  This is used by <see cref="P:MvcMiniProfiler.MiniProfiler.Current"/>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.BaseProfilerProvider.SetProfilerActive(MvcMiniProfiler.MiniProfiler)">
+            <summary>
+            Sets <paramref name="profiler"/> to be active (read to start profiling)
+            This should be called once a new MiniProfiler has been created.
+            </summary>
+            <param name="profiler">The profiler to set to active</param>
+            <exception cref="T:System.ArgumentNullException">If <paramref name="profiler"/> is null</exception>
+        </member>
+        <member name="M:MvcMiniProfiler.BaseProfilerProvider.StopProfiler(MvcMiniProfiler.MiniProfiler)">
+            <summary>
+            Stops the profiler and marks it as inactive.
+            </summary>
+            <param name="profiler">The profiler to stop</param>
+            <returns>True if successful, false if Stop had previously been called on this profiler</returns>
+            <exception cref="T:System.ArgumentNullException">If <paramref name="profiler"/> is null</exception>
+        </member>
+        <member name="M:MvcMiniProfiler.BaseProfilerProvider.SaveProfiler(MvcMiniProfiler.MiniProfiler)">
+            <summary>
+            Calls <see cref="M:MvcMiniProfiler.MiniProfiler.Settings.EnsureStorageStrategy"/> to save the current
+            profiler using the current storage settings
+            </summary>
+            <param name="current"></param>
+        </member>
         <member name="T:MvcMiniProfiler.Data.ExecuteType">
             <summary>
             Categories of sql statements.
@@ -49,117 +125,24 @@
             <param name="executeType"></param>
             <param name="reader"></param>
         </member>
-        <member name="M:MvcMiniProfiler.Data.IDbProfiler.ExecuteFinish(System.Data.Common.DbCommand,MvcMiniProfiler.Data.ExecuteType)">
-            <summary>
-            Called when a command finishes executing
-            </summary>
-            <param name="profiledDbCommand"></param>
-            <param name="executeType"></param>
-        </member>
         <member name="M:MvcMiniProfiler.Data.IDbProfiler.ReaderFinish(System.Data.Common.DbDataReader)">
             <summary>
             Called when a reader is done iterating through the data 
             </summary>
             <param name="reader"></param>
         </member>
+        <member name="M:MvcMiniProfiler.Data.IDbProfiler.OnError(System.Data.Common.DbCommand,MvcMiniProfiler.Data.ExecuteType,System.Exception)">
+            <summary>
+            Called when an error happens during execution of a command 
+            </summary>
+            <param name="profiledDbCommand"></param>
+            <param name="executeType"></param>
+            <param name="exception"></param>
+        </member>
         <member name="P:MvcMiniProfiler.Data.IDbProfiler.IsActive">
             <summary>
             True if the profiler instance is active
             </summary>
-        </member>
-        <member name="T:MvcMiniProfiler.Data.ProfiledDbConnectionFactory">
-            <summary>
-            Connection factory used for EF Code First DbContext API
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Data.ProfiledDbConnectionFactory.#ctor(System.Data.Entity.Infrastructure.IDbConnectionFactory)">
-            <summary>
-            Create a profiled connection factory
-            </summary>
-            <param name="wrapped">The underlying connection that needs to be profiled</param>
-        </member>
-        <member name="M:MvcMiniProfiler.Data.ProfiledDbConnectionFactory.CreateConnection(System.String)">
-            <summary>
-            Create a wrapped connection for profiling purposes 
-            </summary>
-            <param name="nameOrConnectionString"></param>
-            <returns></returns>
-        </member>
-        <member name="T:MvcMiniProfiler.Helpers.ExtensionMethods">
-            <summary>
-            Common extension methods to use only in this project
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.IsNullOrWhiteSpace(System.String)">
-            <summary>
-            Answers true if this String is either null or empty.
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.HasValue(System.String)">
-            <summary>
-            Answers true if this String is neither null or empty.
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.EnsureTrailingSlash(System.String)">
-            <summary>
-            Removes trailing / characters from a path and leaves just one
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.RemoveLeadingSlash(System.String)">
-            <summary>
-            Removes any leading / characters from a path
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.RemoveTrailingSlash(System.String)">
-            <summary>
-            Removes any leading / characters from a path
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.ToJson(System.Object)">
-            <summary>
-            Serializes <paramref name="o"/> to a json string.
-            </summary>
-        </member>
-        <member name="T:MvcMiniProfiler.Data.Link`2">
-            <summary>
-            This is a micro-cache; suitable when the number of terms is controllable (a few hundred, for example),
-            and strictly append-only; you cannot change existing values. All key matches are on **REFERENCE**
-            equality. The type is fully thread-safe.
-            </summary>
-        </member>
-        <member name="P:MvcMiniProfiler.Data.ProfiledDbCommand.BindByName">
-            <summary>
-            If the underlying command supports BindByName, this sets/clears the underlying
-            implementation accordingly. This is required to support OracleCommand from dapper-dot-net
-            </summary>
-        </member>
-        <member name="T:MvcMiniProfiler.Data.ProfiledDbConnection">
-            <summary>
-            Wraps a database connection, allowing sql execution timings to be collected when a <see cref="T:MvcMiniProfiler.MiniProfiler"/> session is started.
-            </summary>
-        </member>
-        <member name="M:MvcMiniProfiler.Data.ProfiledDbConnection.Get(System.Data.Common.DbConnection)">
-            <summary>
-            Returns a new <see cref="T:MvcMiniProfiler.Data.ProfiledDbConnection"/> that wraps <paramref name="connection"/>, 
-            providing query execution profiling.
-            </summary>
-            <param name="connection">Your provider-specific flavor of connection, e.g. SqlConnection, OracleConnection</param>
-        </member>
-        <member name="M:MvcMiniProfiler.Data.ProfiledDbConnection.Get(System.Data.Common.DbConnection,MvcMiniProfiler.Data.IDbProfiler)">
-            <summary>
-            Returns a new <see cref="T:MvcMiniProfiler.Data.ProfiledDbConnection"/> that wraps <paramref name="connection"/>, 
-            providing query execution profiling.
-            </summary>
-            <param name="connection">Your provider-specific flavor of connection, e.g. SqlConnection, OracleConnection</param>
-            <param name="profiler">The currently started <see cref="T:MvcMiniProfiler.MiniProfiler"/> or null.</param>
-        </member>
-        <member name="M:MvcMiniProfiler.Data.ProfiledDbConnection.#ctor(System.Data.Common.DbConnection,MvcMiniProfiler.Data.IDbProfiler)">
-            <summary>
-            Returns a new <see cref="T:MvcMiniProfiler.Data.ProfiledDbConnection"/> that wraps <paramref name="connection"/>, 
-            providing query execution profiling.  If profiler is null, no profiling will occur.
-            </summary>
-            <param name="connection">Your provider-specific flavor of connection, e.g. SqlConnection, OracleConnection</param>
-            <param name="profiler">The currently started <see cref="T:MvcMiniProfiler.MiniProfiler"/> or null.</param>
         </member>
         <member name="T:MvcMiniProfiler.Data.ProfiledDbProviderFactory">
             <summary>
@@ -230,51 +213,163 @@
             proxy
             </summary>
         </member>
-        <member name="M:MvcMiniProfiler.Data.ProfiledDbProviderFactory.System#IServiceProvider#GetService(System.Type)">
-            <summary>
-            Extension mechanism for additional services;  
-            </summary>
-            <returns>requested service provider or null.</returns>
-        </member>
         <member name="P:MvcMiniProfiler.Data.ProfiledDbProviderFactory.CanCreateDataSourceEnumerator">
             <summary>
             proxy
             </summary>
         </member>
-        <member name="M:MvcMiniProfiler.Data.ProfiledDbProviderServices.CreateCommandDefinition(System.Data.Common.DbCommand)">
+        <member name="T:MvcMiniProfiler.Helpers.ExtensionMethods">
             <summary>
-            Get DB command definition
+            Common extension methods to use only in this project
             </summary>
-            <param name="prototype"></param>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.IsNullOrWhiteSpace(System.String)">
+            <summary>
+            Answers true if this String is either null or empty.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.HasValue(System.String)">
+            <summary>
+            Answers true if this String is neither null or empty.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.EnsureTrailingSlash(System.String)">
+            <summary>
+            Removes trailing / characters from a path and leaves just one
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.RemoveLeadingSlash(System.String)">
+            <summary>
+            Removes any leading / characters from a path
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.RemoveTrailingSlash(System.String)">
+            <summary>
+            Removes any leading / characters from a path
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.ExtensionMethods.ToJson(System.Object)">
+            <summary>
+            Serializes <paramref name="o"/> to a json string.
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.Data.Link`2">
+            <summary>
+            This is a micro-cache; suitable when the number of terms is controllable (a few hundred, for example),
+            and strictly append-only; you cannot change existing values. All key matches are on **REFERENCE**
+            equality. The type is fully thread-safe.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.Data.ProfiledDbCommand.BindByName">
+            <summary>
+            If the underlying command supports BindByName, this sets/clears the underlying
+            implementation accordingly. This is required to support OracleCommand from dapper-dot-net
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.Data.ProfiledDbConnection">
+            <summary>
+            Wraps a database connection, allowing sql execution timings to be collected when a <see cref="T:MvcMiniProfiler.MiniProfiler"/> session is started.
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.Data.ProfiledDbConnection._conn">
+            <summary>
+            This will be made private; use <see cref="P:MvcMiniProfiler.Data.ProfiledDbConnection.InnerConnection"/>
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.Data.ProfiledDbConnection._profiler">
+            <summary>
+            This will be made private; use <see cref="P:MvcMiniProfiler.Data.ProfiledDbConnection.Profiler"/>
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Data.ProfiledDbConnection.#ctor(System.Data.Common.DbConnection,MvcMiniProfiler.Data.IDbProfiler)">
+            <summary>
+            Returns a new <see cref="T:MvcMiniProfiler.Data.ProfiledDbConnection"/> that wraps <paramref name="connection"/>, 
+            providing query execution profiling.  If profiler is null, no profiling will occur.
+            </summary>
+            <param name="connection">Your provider-specific flavor of connection, e.g. SqlConnection, OracleConnection</param>
+            <param name="profiler">The currently started <see cref="T:MvcMiniProfiler.MiniProfiler"/> or null.</param>
+        </member>
+        <member name="P:MvcMiniProfiler.Data.ProfiledDbConnection.InnerConnection">
+            <summary>
+            The underlying, real database connection to your db provider.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.Data.ProfiledDbConnection.Profiler">
+            <summary>
+            The current profiler instance; could be null.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.Data.ProfiledDbConnection.WrappedConnection">
+            <summary>
+            The raw connection this is wrapping
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.Helpers.Dapper.SqlMapper">
+            <summary>
+            Dapper, a light weight object mapper for ADO.NET
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.PurgeQueryCache">
+            <summary>
+            Purge the query cache 
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GetCachedSQLCount">
+            <summary>
+            Return a count of all the cached queries by dapper
+            </summary>
             <returns></returns>
         </member>
-        <member name="M:MvcMiniProfiler.Helpers.SqlMapper.Execute(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GetCachedSQL(System.Int32)">
+            <summary>
+            Return a list of all the queries cached by dapper
+            </summary>
+            <param name="ignoreHitCountAbove"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GetHashCollissions">
+            <summary>
+            Deep diagnostics only: find any hash collisions in the cache
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Execute(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             Execute parameterized SQL  
             </summary>
             <returns>Number of rows affected</returns>
         </member>
-        <member name="M:MvcMiniProfiler.Helpers.SqlMapper.Query(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Boolean,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Query(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Boolean,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             Return a list of dynamic objects, reader is closed after the call
             </summary>
         </member>
-        <member name="M:MvcMiniProfiler.Helpers.SqlMapper.QueryMultiple(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Query``1(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Boolean,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Executes a query, returning the data typed as per T
+            </summary>
+            <remarks>the dynamic param may seem a bit odd, but this works around a major usability issue in vs, if it is Object vs completion gets annoying. Eg type new [space] get new object</remarks>
+            <returns>A sequence of data of the supplied type; if a basic type (int, string, etc) is queried then the data from the first column in assumed, otherwise an instance is
+            created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
+            </returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.QueryMultiple(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             Execute a command that returns multiple result sets, and access each in turn
             </summary>
         </member>
-        <member name="M:MvcMiniProfiler.Helpers.SqlMapper.QueryInternal``1(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.QueryInternal``1(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             Return a typed list of objects, reader is closed after the call
             </summary>
         </member>
-        <member name="M:MvcMiniProfiler.Helpers.SqlMapper.Query``3(System.Data.IDbConnection,System.String,System.Func{``0,``1,``2},System.Object,System.Data.IDbTransaction,System.Boolean,System.String,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Query``3(System.Data.IDbConnection,System.String,System.Func{``0,``1,``2},System.Object,System.Data.IDbTransaction,System.Boolean,System.String,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             Maps a query to objects
             </summary>
-            <typeparam name="T">The return type</typeparam>
-            <typeparam name="U"></typeparam>
+            <typeparam name="TFirst">The first type in the recordset</typeparam>
+            <typeparam name="TSecond">The second type in the recordset</typeparam>
+            <typeparam name="TReturn">The return type</typeparam>
             <param name="cnn"></param>
             <param name="sql"></param>
             <param name="map"></param>
@@ -283,18 +378,337 @@
             <param name="buffered"></param>
             <param name="splitOn">The Field we should split and read the second object from (default: id)</param>
             <param name="commandTimeout">Number of seconds before command execution timeout</param>
+            <param name="commandType">Is it a stored proc or a batch?</param>
             <returns></returns>
         </member>
-        <member name="T:MvcMiniProfiler.Helpers.SqlMapper.Link`2">
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Query``4(System.Data.IDbConnection,System.String,System.Func{``0,``1,``2,``3},System.Object,System.Data.IDbTransaction,System.Boolean,System.String,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Maps a query to objects
+            </summary>
+            <typeparam name="TFirst"></typeparam>
+            <typeparam name="TSecond"></typeparam>
+            <typeparam name="TThird"></typeparam>
+            <typeparam name="TReturn"></typeparam>
+            <param name="cnn"></param>
+            <param name="sql"></param>
+            <param name="map"></param>
+            <param name="param"></param>
+            <param name="transaction"></param>
+            <param name="buffered"></param>
+            <param name="splitOn">The Field we should split and read the second object from (default: id)</param>
+            <param name="commandTimeout">Number of seconds before command execution timeout</param>
+            <param name="commandType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Query``5(System.Data.IDbConnection,System.String,System.Func{``0,``1,``2,``3,``4},System.Object,System.Data.IDbTransaction,System.Boolean,System.String,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Perform a multi mapping query with 4 input parameters
+            </summary>
+            <typeparam name="TFirst"></typeparam>
+            <typeparam name="TSecond"></typeparam>
+            <typeparam name="TThird"></typeparam>
+            <typeparam name="TFourth"></typeparam>
+            <typeparam name="TReturn"></typeparam>
+            <param name="cnn"></param>
+            <param name="sql"></param>
+            <param name="map"></param>
+            <param name="param"></param>
+            <param name="transaction"></param>
+            <param name="buffered"></param>
+            <param name="splitOn"></param>
+            <param name="commandTimeout"></param>
+            <param name="commandType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Query``6(System.Data.IDbConnection,System.String,System.Func{``0,``1,``2,``3,``4,``5},System.Object,System.Data.IDbTransaction,System.Boolean,System.String,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Perform a multi mapping query with 5 input parameters
+            </summary>
+            <typeparam name="TFirst"></typeparam>
+            <typeparam name="TSecond"></typeparam>
+            <typeparam name="TThird"></typeparam>
+            <typeparam name="TFourth"></typeparam>
+            <typeparam name="TFifth"></typeparam>
+            <typeparam name="TReturn"></typeparam>
+            <param name="cnn"></param>
+            <param name="sql"></param>
+            <param name="map"></param>
+            <param name="param"></param>
+            <param name="transaction"></param>
+            <param name="buffered"></param>
+            <param name="splitOn"></param>
+            <param name="commandTimeout"></param>
+            <param name="commandType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.ReadChar(System.Object)">
+            <summary>
+            Internal use only
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.ReadNullableChar(System.Object)">
+            <summary>
+            Internal use only
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.PackListParameters(System.Data.IDbCommand,System.String,System.Object)">
+            <summary>
+            Internal use only
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.CreateParamInfoGenerator(MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity)">
+            <summary>
+            Internal use only
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GetClassDeserializer(System.Type,System.Data.IDataReader,System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Internal use only
+            </summary>
+            <param name="type"></param>
+            <param name="reader"></param>
+            <param name="startBound"></param>
+            <param name="length"></param>
+            <param name="returnNullIfFirstMissing"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.ThrowDataException(System.Exception,System.Int32,System.Data.IDataReader)">
+            <summary>
+            Throws a data exception, only used internally
+            </summary>
+            <param name="ex"></param>
+            <param name="index"></param>
+            <param name="reader"></param>
+        </member>
+        <member name="E:MvcMiniProfiler.Helpers.Dapper.SqlMapper.QueryCachePurged">
+            <summary>
+            Called if the query cache is purged via PurgeQueryCache
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.Helpers.Dapper.SqlMapper.IDynamicParameters">
+            <summary>
+            Implement this interface to pass an arbitrary db specific set of parameters to Dapper
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.IDynamicParameters.AddParameters(System.Data.IDbCommand,MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity)">
+            <summary>
+            Add all the parameters needed to the command just before it executes
+            </summary>
+            <param name="command">The raw command prior to execution</param>
+            <param name="identity">Information about the query</param>
+        </member>
+        <member name="T:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Link`2">
             <summary>
             This is a micro-cache; suitable when the number of terms is controllable (a few hundred, for example),
             and strictly append-only; you cannot change existing values. All key matches are on **REFERENCE**
             equality. The type is fully thread-safe.
             </summary>
         </member>
-        <member name="M:MvcMiniProfiler.Helpers.SqlMapper.GridReader.Read``1">
+        <member name="T:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity">
+            <summary>
+            Identity of a cached query in Dapper, used for extensability
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.ForDynamicParameters(System.Type)">
+            <summary>
+            Create an identity for use with DynamicParameters, internal use only
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.Equals(System.Object)">
+            <summary>
+            
+            </summary>
+            <param name="obj"></param>
+            <returns></returns>
+        </member>
+        <member name="F:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.sql">
+            <summary>
+            The sql
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.commandType">
+            <summary>
+            The command type 
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.hashCode">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.gridIndex">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.connectionString">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.parametersType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.GetHashCode">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity.Equals(MvcMiniProfiler.Helpers.Dapper.SqlMapper.Identity)">
+            <summary>
+            Compare 2 Identity objects
+            </summary>
+            <param name="other"></param>
+            <returns></returns>
+        </member>
+        <member name="T:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GridReader">
+            <summary>
+            The grid reader provides interfaces for reading multiple result sets from a Dapper query 
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GridReader.Read``1">
             <summary>
             Read the next grid of results
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GridReader.Read``3(System.Func{``0,``1,``2},System.String)">
+            <summary>
+            Read multiple objects from a single recordset on the grid
+            </summary>
+            <typeparam name="TFirst"></typeparam>
+            <typeparam name="TSecond"></typeparam>
+            <typeparam name="TReturn"></typeparam>
+            <param name="func"></param>
+            <param name="splitOn"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GridReader.Read``4(System.Func{``0,``1,``2,``3},System.String)">
+            <summary>
+            Read multiple objects from a single recordset on the grid
+            </summary>
+            <typeparam name="TFirst"></typeparam>
+            <typeparam name="TSecond"></typeparam>
+            <typeparam name="TThird"></typeparam>
+            <typeparam name="TReturn"></typeparam>
+            <param name="func"></param>
+            <param name="splitOn"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GridReader.Read``5(System.Func{``0,``1,``2,``3,``4},System.String)">
+            <summary>
+            Read multiple objects from a single record set on the grid
+            </summary>
+            <typeparam name="TFirst"></typeparam>
+            <typeparam name="TSecond"></typeparam>
+            <typeparam name="TThird"></typeparam>
+            <typeparam name="TFourth"></typeparam>
+            <typeparam name="TReturn"></typeparam>
+            <param name="func"></param>
+            <param name="splitOn"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GridReader.Read``6(System.Func{``0,``1,``2,``3,``4,``5},System.String)">
+            <summary>
+            Read multiple objects from a single record set on the grid
+            </summary>
+            <typeparam name="TFirst"></typeparam>
+            <typeparam name="TSecond"></typeparam>
+            <typeparam name="TThird"></typeparam>
+            <typeparam name="TFourth"></typeparam>
+            <typeparam name="TFifth"></typeparam>
+            <typeparam name="TReturn"></typeparam>
+            <param name="func"></param>
+            <param name="splitOn"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.GridReader.Dispose">
+            <summary>
+            Dispose the grid, closing and disposing both the underlying reader and command.
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.Helpers.Dapper.DynamicParameters">
+            <summary>
+            A bag of parameters that can be passed to the Dapper Query and Execute methods
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.DynamicParameters.#ctor">
+            <summary>
+            construct a dynamic parameter bag
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.DynamicParameters.#ctor(System.Object)">
+            <summary>
+            construct a dynamic parameter bag
+            </summary>
+            <param name="template">can be an anonymous type of a DynamicParameters bag</param>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.DynamicParameters.AddDynamicParams(System.Object)">
+            <summary>
+            Append a whole object full of params to the dynamic
+            EG: AddParams(new {A = 1, B = 2}) // will add property A and B to the dynamic
+            </summary>
+            <param name="param"></param>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.DynamicParameters.Add(System.String,System.Object,System.Nullable{System.Data.DbType},System.Nullable{System.Data.ParameterDirection},System.Nullable{System.Int32})">
+            <summary>
+            Add a parameter to this dynamic parameter list
+            </summary>
+            <param name="name"></param>
+            <param name="value"></param>
+            <param name="dbType"></param>
+            <param name="direction"></param>
+            <param name="size"></param>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.DynamicParameters.Get``1(System.String)">
+            <summary>
+            Get the value of a parameter
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="name"></param>
+            <returns>The value, note DBNull.Value is not returned, instead the value is returned as null</returns>
+        </member>
+        <member name="T:MvcMiniProfiler.Helpers.Dapper.DbString">
+            <summary>
+            This class represents a SQL string, it can be used if you need to denote your parameter is a Char vs VarChar vs nVarChar vs nChar
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.DbString.#ctor">
+            <summary>
+            Create a new DbString
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Helpers.Dapper.DbString.AddParameter(System.Data.IDbCommand,System.String)">
+            <summary>
+            Add the parameter to the command... internal use only
+            </summary>
+            <param name="command"></param>
+            <param name="name"></param>
+        </member>
+        <member name="P:MvcMiniProfiler.Helpers.Dapper.DbString.IsAnsi">
+            <summary>
+            Ansi vs Unicode 
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.Helpers.Dapper.DbString.IsFixedLength">
+            <summary>
+            Fixed length 
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.Helpers.Dapper.DbString.Length">
+            <summary>
+            Length of the string -1 for max
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.Helpers.Dapper.DbString.Value">
+            <summary>
+            The value of the string
             </summary>
         </member>
         <member name="T:MvcMiniProfiler.Helpers.StackTraceSnippet">
@@ -340,20 +754,50 @@
             Returns all currently open commands on this connection
             </summary>
         </member>
-        <member name="F:MvcMiniProfiler.MiniProfiler._watch">
+        <member name="M:MvcMiniProfiler.MiniProfiler.GetSqlTimings">
+            <summary>
+            Returns all <see cref="T:MvcMiniProfiler.SqlTiming"/> results contained in all child <see cref="T:MvcMiniProfiler.Timing"/> steps.
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.MiniProfiler._sqlExecutionCounts">
+            <summary>
+            Contains any sql statements that are executed, along with how many times those statements are executed.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.MiniProfiler.AddSqlTiming(MvcMiniProfiler.SqlTiming)">
+            <summary>
+            Adds <paramref name="stats"/> to the current <see cref="T:MvcMiniProfiler.Timing"/>.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.MiniProfiler.GetExecutedCount(MvcMiniProfiler.Data.ExecuteType)">
+            <summary>
+            Returns the number of sql statements of <paramref name="type"/> that were executed in all <see cref="T:MvcMiniProfiler.Timing"/>s.
+            </summary>
+        </member>
+        <member name="F:MvcMiniProfiler.MiniProfiler._sw">
             <summary>
             Starts when this profiler is instantiated. Each <see cref="T:MvcMiniProfiler.Timing"/> step will use this Stopwatch's current ticks as
             their starting time.
             </summary>
         </member>
-        <member name="F:MvcMiniProfiler.MiniProfiler._sqlCounts">
-            <summary>
-            
-            </summary>
-        </member>
         <member name="M:MvcMiniProfiler.MiniProfiler.#ctor(System.String,MvcMiniProfiler.ProfileLevel)">
             <summary>
             Creates and starts a new MiniProfiler for the root <paramref name="url"/>, filtering <see cref="T:MvcMiniProfiler.Timing"/> steps to <paramref name="level"/>.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.MiniProfiler.ToString">
+            <summary>
+            Returns the <see cref="P:MvcMiniProfiler.MiniProfiler.Root"/>'s <see cref="P:MvcMiniProfiler.Timing.Name"/> and <see cref="P:MvcMiniProfiler.MiniProfiler.DurationMilliseconds"/> this profiler recorded.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.MiniProfiler.Equals(System.Object)">
+            <summary>
+            Returns true if Ids match.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.MiniProfiler.GetHashCode">
+            <summary>
+            Returns hashcode of Id.
             </summary>
         </member>
         <member name="M:MvcMiniProfiler.MiniProfiler.#ctor">
@@ -366,11 +810,6 @@
             Walks the <see cref="T:MvcMiniProfiler.Timing"/> hierarchy contained in this profiler, starting with <see cref="P:MvcMiniProfiler.MiniProfiler.Root"/>, and returns each Timing found.
             </summary>
         </member>
-        <member name="M:MvcMiniProfiler.MiniProfiler.GetSqlTimings">
-            <summary>
-            Returns all <see cref="T:MvcMiniProfiler.SqlTiming"/> results contained in all child <see cref="T:MvcMiniProfiler.Timing"/> steps.
-            </summary>
-        </member>
         <member name="M:MvcMiniProfiler.MiniProfiler.GetRoundedMilliseconds(System.Int64)">
             <summary>
             Returns milliseconds based on Stopwatch's Frequency.
@@ -378,7 +817,7 @@
         </member>
         <member name="M:MvcMiniProfiler.MiniProfiler.Start(MvcMiniProfiler.ProfileLevel)">
             <summary>
-            Starts a new MiniProfiler for the current Request. This new profiler can be accessed by
+            Starts a new MiniProfiler based on the current <see cref="T:MvcMiniProfiler.IProfilerProvider"/>. This new profiler can be accessed by
             <see cref="P:MvcMiniProfiler.MiniProfiler.Current"/>
             </summary>
         </member>
@@ -391,11 +830,6 @@
             be prematurely stopped and discarded. Useful for when a specific route does not need to be profiled.
             </param>
         </member>
-        <member name="M:MvcMiniProfiler.MiniProfiler.EnsureName(MvcMiniProfiler.MiniProfiler,System.Web.HttpRequest)">
-            <summary>
-            Makes sure 'profiler' has a Name, pulling it from route data or url.
-            </summary>
-        </member>
         <member name="M:MvcMiniProfiler.MiniProfiler.StepStatic(System.String,MvcMiniProfiler.ProfileLevel)">
             <summary>
             Returns an <see cref="T:System.IDisposable"/> that will time the code between its creation and disposal. Use this method when you
@@ -404,7 +838,7 @@
             <param name="name">A descriptive name for the code that is encapsulated by the resulting IDisposable's lifetime.</param>
             <param name="level">This step's visibility level; allows filtering when <see cref="M:MvcMiniProfiler.MiniProfiler.Start(MvcMiniProfiler.ProfileLevel)"/> is called.</param>
         </member>
-        <member name="M:MvcMiniProfiler.MiniProfiler.RenderIncludes(System.Nullable{MvcMiniProfiler.RenderPosition},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Nullable{System.Int32})">
+        <member name="M:MvcMiniProfiler.MiniProfiler.RenderIncludes(System.Nullable{MvcMiniProfiler.RenderPosition},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Boolean,System.Nullable{System.Boolean})">
             <summary>
             Returns the css and javascript includes needed to display the MiniProfiler results UI.
             </summary>
@@ -412,6 +846,8 @@
             <param name="showTrivial">Whether to show trivial timings by default (defaults to false)</param>
             <param name="showTimeWithChildren">Whether to show time the time with children column by default (defaults to false)</param>
             <param name="maxTracesToShow">The maximum number of trace popups to show before removing the oldest (defaults to 15)</param>
+            <param name="xhtml">xhtml rendering mode, ensure script tag is closed ... etc</param>
+            <param name="showControls">when true, shows buttons to minimize and clear MiniProfiler results</param>
             <returns>Script and link elements normally; an empty string when there is no active profiling session.</returns>
         </member>
         <member name="M:MvcMiniProfiler.MiniProfiler.ToJson">
@@ -434,6 +870,41 @@
             Create a DEEP clone of this object
             </summary>
             <returns></returns>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.SqlProfiler">
+            <summary>
+            Contains information about queries executed during this profiling session.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.DurationMillisecondsInSql">
+            <summary>
+            Milliseconds, to one decimal place, that this MiniProfiler was executing sql.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.HasSqlTimings">
+            <summary>
+            Returns true when we have profiled queries.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.HasDuplicateSqlTimings">
+            <summary>
+            Returns true when any child Timings have duplicate queries.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.ExecutedReaders">
+            <summary>
+            How many sql data readers were executed in all <see cref="T:MvcMiniProfiler.Timing"/> steps.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.ExecutedScalars">
+            <summary>
+            How many sql scalar queries were executed in all <see cref="T:MvcMiniProfiler.Timing"/> steps.
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.ExecutedNonQueries">
+            <summary>
+            How many sql non-query statements were executed in all <see cref="T:MvcMiniProfiler.Timing"/> steps.
+            </summary>
         </member>
         <member name="P:MvcMiniProfiler.MiniProfiler.Id">
             <summary>
@@ -486,29 +957,14 @@
             will keep a list of all profilers that haven't been fetched down.
             </remarks>
         </member>
-        <member name="P:MvcMiniProfiler.MiniProfiler.SqlProfiler">
+        <member name="P:MvcMiniProfiler.MiniProfiler.Stopwatch">
             <summary>
-            Contains information about queries executed during this profiling session.
+            For unit testing, returns the timer.
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.MiniProfiler.DurationMilliseconds">
             <summary>
             Milliseconds, to one decimal place, that this MiniProfiler ran.
-            </summary>
-        </member>
-        <member name="P:MvcMiniProfiler.MiniProfiler.DurationMillisecondsInSql">
-            <summary>
-            Milliseconds, to one decimal place, that this MiniProfiler was executing sql.
-            </summary>
-        </member>
-        <member name="P:MvcMiniProfiler.MiniProfiler.HasSqlTimings">
-            <summary>
-            Returns true when we have profiled queries.
-            </summary>
-        </member>
-        <member name="P:MvcMiniProfiler.MiniProfiler.HasDuplicateSqlTimings">
-            <summary>
-            Returns true when any child Timings have duplicate queries.
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.MiniProfiler.HasTrivialTimings">
@@ -533,7 +989,7 @@
         </member>
         <member name="P:MvcMiniProfiler.MiniProfiler.Head">
             <summary>
-            Points to the currently executing Timing.
+            Points to the currently executing Timing. 
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.MiniProfiler.Current">
@@ -618,6 +1074,12 @@
             For a per-page override you can use .RenderIncludes(position: RenderPosition.Left/Right)
             </summary>
         </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.Settings.ShowControls">
+            <summary>
+            Determines if min-max, clear, etc are rendered; defaults to false.
+            For a per-page override you can use .RenderIncludes(showControls: true/false)
+            </summary>
+        </member>
         <member name="P:MvcMiniProfiler.MiniProfiler.Settings.ExcludeStackTraceSnippetFromSqlTimings">
             <summary>
             By default, SqlTimings will grab a stack trace to help locate where queries are being executed.
@@ -670,6 +1132,12 @@
             Assembly version of this dank MiniProfiler.
             </summary>
         </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.Settings.ProfilerProvider">
+            <summary>
+            The provider used to provider the current instance of a provider
+            This is also 
+            </summary>
+        </member>
         <member name="P:MvcMiniProfiler.MiniProfiler.Settings.Results_Authorize">
             <summary>
             A function that determines who can access the MiniProfiler results url.  It should return true when
@@ -679,6 +1147,11 @@
             <remarks>
             Both the HttpRequest and MiniProfiler parameters that will be passed into this function should never be null.
             </remarks>
+        </member>
+        <member name="P:MvcMiniProfiler.MiniProfiler.Settings.StopwatchProvider">
+            <summary>
+            Allows switching out stopwatches for unit testing.
+            </summary>
         </member>
         <member name="T:MvcMiniProfiler.ProfileLevel">
             <summary>
@@ -766,23 +1239,23 @@
         </member>
         <member name="M:MvcMiniProfiler.MVCHelpers.ProfilingViewEngine.#ctor(System.Web.Mvc.IViewEngine)">
             <summary>
-            Create a wrapped view engine, which will profile partials an non-partial views
+            Wrap your view engines with this to allow profiling
             </summary>
             <param name="wrapped"></param>
         </member>
         <member name="M:MvcMiniProfiler.MVCHelpers.ProfilingViewEngine.FindPartialView(System.Web.Mvc.ControllerContext,System.String,System.Boolean)">
             <summary>
-            Find a partial view
+            Find a partial
             </summary>
         </member>
         <member name="M:MvcMiniProfiler.MVCHelpers.ProfilingViewEngine.FindView(System.Web.Mvc.ControllerContext,System.String,System.String,System.Boolean)">
             <summary>
-            Fined a view
+            Find a view
             </summary>
         </member>
         <member name="M:MvcMiniProfiler.MVCHelpers.ProfilingViewEngine.ReleaseView(System.Web.Mvc.ControllerContext,System.Web.Mvc.IView)">
             <summary>
-            Release view
+            Find a partial
             </summary>
         </member>
         <member name="T:MvcMiniProfiler.SqlFormatters.InlineFormatter">
@@ -847,6 +1320,16 @@
         <member name="T:MvcMiniProfiler.SqlTimingParameter">
             <summary>
             Information about a DbParameter used in the sql statement profiled by SqlTiming.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.SqlTimingParameter.Equals(System.Object)">
+            <summary>
+            Returns true if this has the same parent <see cref="P:MvcMiniProfiler.SqlTiming.Id"/>, <see cref="P:MvcMiniProfiler.SqlTimingParameter.Name"/> and <see cref="P:MvcMiniProfiler.SqlTimingParameter.Value"/> as <paramref name="obj"/>.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.SqlTimingParameter.GetHashCode">
+            <summary>
+            Returns the XOR of certain properties.
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.SqlTimingParameter.ParentSqlTimingId">
@@ -1017,6 +1500,21 @@
             Obsolete - used for serialization.
             </summary>
         </member>
+        <member name="M:MvcMiniProfiler.SqlTiming.ToString">
+            <summary>
+            Returns a snippet of the sql command and the duration.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.SqlTiming.Equals(System.Object)">
+            <summary>
+            Returns true if Ids match.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.SqlTiming.GetHashCode">
+            <summary>
+            Returns hashcode of Id.
+            </summary>
+        </member>
         <member name="M:MvcMiniProfiler.SqlTiming.ExecutionComplete(System.Boolean)">
             <summary>
             Called when command execution is finished to determine this SqlTiming's duration.
@@ -1043,11 +1541,6 @@
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.SqlTiming.CommandString">
-            <summary>
-            The sql that was executed.
-            </summary>
-        </member>
-        <member name="P:MvcMiniProfiler.SqlTiming.RawCommandString">
             <summary>
             The sql that was executed.
             </summary>
@@ -1205,6 +1698,12 @@
             Returns a connection to Sql Server.
             </summary>
         </member>
+        <member name="P:MvcMiniProfiler.Storage.SqlServerStorage.EnableBatchSelects">
+            <summary>
+            A full install of Sql Server can return multiple result sets in one query, allowing the use of <see cref="M:MvcMiniProfiler.Helpers.Dapper.SqlMapper.QueryMultiple(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})"/>.
+            However, Sql Server CE and Sqlite cannot do this, so inheritors for those providers can return false here.
+            </summary>
+        </member>
         <member name="T:MvcMiniProfiler.Timing">
             <summary>
             An individual profiling step that can contain child steps.
@@ -1235,6 +1734,16 @@
             Returns this Timing's Name.
             </summary>
         </member>
+        <member name="M:MvcMiniProfiler.Timing.Equals(System.Object)">
+            <summary>
+            Returns true if Ids match.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.Timing.GetHashCode">
+            <summary>
+            Returns hashcode of Id.
+            </summary>
+        </member>
         <member name="M:MvcMiniProfiler.Timing.AddKeyValue(System.String,System.String)">
             <summary>
             Adds arbitrary string 'value' under 'key', allowing custom properties to be stored in this Timing step.
@@ -1261,6 +1770,11 @@
             <remarks>
             Used outside this assembly for custom deserialization when creating an <see cref="T:MvcMiniProfiler.Storage.IStorage"/> implementation.
             </remarks>
+        </member>
+        <member name="M:MvcMiniProfiler.Timing.GetExecutedCount(MvcMiniProfiler.Data.ExecuteType)">
+            <summary>
+            Returns the number of sql statements of <paramref name="type"/> that were executed in this <see cref="T:MvcMiniProfiler.Timing"/>.
+            </summary>
         </member>
         <member name="P:MvcMiniProfiler.Timing.Id">
             <summary>
@@ -1310,12 +1824,12 @@
         </member>
         <member name="P:MvcMiniProfiler.Timing.DurationWithoutChildrenMilliseconds">
             <summary>
-            Gets the ellapsed milliseconds in this step without any children's durations.
+            Gets the elapsed milliseconds in this step without any children's durations.
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.Timing.SqlTimingsDurationMilliseconds">
             <summary>
-            Gets the aggregate ellapsed milliseconds of all SqlTimings executed in this Timing, excluding Children Timings.
+            Gets the aggregate elapsed milliseconds of all SqlTimings executed in this Timing, excluding Children Timings.
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.Timing.IsTrivial">
@@ -1356,17 +1870,17 @@
         </member>
         <member name="P:MvcMiniProfiler.Timing.ExecutedReaders">
             <summary>
-            How many sql data readers were executed in this Timing step.
+            How many sql data readers were executed in this Timing step. Does not include queries in any child Timings.
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.Timing.ExecutedScalars">
             <summary>
-            How many sql scalar queries were executed in this Timing step.
+            How many sql scalar queries were executed in this Timing step. Does not include queries in any child Timings.
             </summary>
         </member>
         <member name="P:MvcMiniProfiler.Timing.ExecutedNonQueries">
             <summary>
-            How many sql non-query statements were executed in this Timing step.
+            How many sql non-query statements were executed in this Timing step. Does not include queries in any child Timings.
             </summary>
         </member>
         <member name="T:MvcMiniProfiler.UI.MiniProfilerHandler">
@@ -1407,6 +1921,58 @@
         <member name="P:MvcMiniProfiler.UI.MiniProfilerHandler.IsReusable">
             <summary>
             Try to keep everything static so we can easily be reused.
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.WebRequestProfilerProvider">
+            <summary>
+            HttpContext based profiler provider.  This is the default provider to use in a web context.
+            The current profiler is associated with a HttpContext.Current ensuring that profilers are 
+            specific to a individual HttpRequest.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.WebRequestProfilerProvider.#ctor">
+            <summary>
+            Public constructor.  This also registers any UI routes needed to display results
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.WebRequestProfilerProvider.Start(MvcMiniProfiler.ProfileLevel)">
+            <summary>
+            Starts a new MiniProfiler and associates it with the current <see cref="P:System.Web.HttpContext.Current"/>.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.WebRequestProfilerProvider.Stop(System.Boolean)">
+            <summary>
+            Ends the current profiling session, if one exists.
+            </summary>
+            <param name="discardResults">
+            When true, clears the <see cref="P:MvcMiniProfiler.MiniProfiler.Current"/> for this HttpContext, allowing profiling to 
+            be prematurely stopped and discarded. Useful for when a specific route does not need to be profiled.
+            </param>
+        </member>
+        <member name="M:MvcMiniProfiler.WebRequestProfilerProvider.EnsureName(MvcMiniProfiler.MiniProfiler,System.Web.HttpRequest)">
+            <summary>
+            Makes sure 'profiler' has a Name, pulling it from route data or url.
+            </summary>
+        </member>
+        <member name="M:MvcMiniProfiler.WebRequestProfilerProvider.GetCurrentProfiler">
+            <summary>
+            Returns the current profiler
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:MvcMiniProfiler.WebRequestProfilerProvider.Current">
+            <summary>
+            Gets the currently running MiniProfiler for the current HttpContext; null if no MiniProfiler was <see cref="M:MvcMiniProfiler.WebRequestProfilerProvider.Start(MvcMiniProfiler.ProfileLevel)"/>ed.
+            </summary>
+        </member>
+        <member name="T:MvcMiniProfiler.WebRequestProfilerProvider.Settings">
+            <summary>
+            WebRequestProfilerProvider specific configurations
+            </summary>
+        </member>
+        <member name="P:MvcMiniProfiler.WebRequestProfilerProvider.Settings.UserProvider">
+            <summary>
+            Provides user identification for a given profiling request.
             </summary>
         </member>
     </members>

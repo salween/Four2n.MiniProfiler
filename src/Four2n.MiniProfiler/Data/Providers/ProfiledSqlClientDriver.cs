@@ -21,16 +21,16 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
     {
         public override IDbCommand CreateCommand()
         {
-            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateCommand ");
-            if (MvcMiniProfiler.MiniProfiler.Current == null)
+            var command = base.CreateCommand();
+            if (MvcMiniProfiler.MiniProfiler.Current != null)
             {
-                return base.CreateCommand();
-            }
-            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateCommand  Profiling");
-            return new ProfiledDbCommand(
-                base.CreateCommand() as DbCommand,
+                Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateCommand ");
+                command = new ProfiledDbCommand((DbCommand)command,
                 null,
                 MvcMiniProfiler.MiniProfiler.Current);
+                Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateCommand  Profiling");
+            }
+            return command;
         }
 
         public override IDbConnection CreateConnection()
@@ -42,7 +42,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
             }
 
             Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateConnection Profiling");
-            return ProfiledDbConnection.Get(
+            return new ProfiledDbConnection(
                 base.CreateConnection() as DbConnection,
                 MvcMiniProfiler.MiniProfiler.Current);
         }
