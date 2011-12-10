@@ -43,6 +43,10 @@
     <Reference Include="Autofac">
       <HintPath>..\..\..\..\lib\autofac\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="ClaySharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\lib\claysharp\ClaySharp.dll</HintPath>
+    </Reference>
     <Reference Include="FluentNHibernate">
       <HintPath>..\..\..\..\lib\fluentnhibernate\FluentNHibernate.dll</HintPath>
     </Reference>
@@ -91,6 +95,9 @@
     <Compile Include="Filters\ProfilerFilter.cs" />
     <Compile Include="Models\DummyRecord.cs" />
     <Compile Include="OrchardHostProxyLogger.cs" />
+    <Compile Include="Overrides\ContentPartDriverCoordinator.cs" />
+    <Compile Include="Overrides\DefaultContentDisplay.cs" />
+    <Compile Include="Overrides\ProfilingOrchardEventBus.cs" />
     <Compile Include="Services\IProfilerService.cs" />
     <Compile Include="Services\ProfilerService.cs" />
     <Compile Include="ShapeProfiling.cs" />
