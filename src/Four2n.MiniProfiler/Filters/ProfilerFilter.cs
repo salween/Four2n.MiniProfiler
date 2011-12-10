@@ -69,6 +69,15 @@ namespace Four2n.Orchard.MiniProfiler.Filters
 
         public void OnResultExecuted(ResultExecutedContext filterContext)
         {
+            // should only run on a full view rendering result
+            if (!(filterContext.Result is ViewResult)) {
+                return;
+            }
+
+            if (!this.IsActivable()) {
+                return;
+            }
+
             _profiler.StepStop(ResultKey);
         }
 
