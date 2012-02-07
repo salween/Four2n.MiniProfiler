@@ -13,7 +13,7 @@ namespace Four2n.Orchard.MiniProfiler.Filters
     using System.Web.Mvc;
     using System.Web.Routing;
 
-    using MvcMiniProfiler;
+    using StackExchange.Profiling;
 
     using global::Orchard;
     using global::Orchard.DisplayManagement;

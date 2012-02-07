@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Web;
 
-    using MvcMiniProfiler;
+    using StackExchange.Profiling;
 
     using global::Orchard;
     using global::Orchard.DisplayManagement.Implementation;

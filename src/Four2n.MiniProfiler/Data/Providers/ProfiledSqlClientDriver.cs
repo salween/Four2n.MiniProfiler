@@ -13,7 +13,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
     using System.Data.Common;
     using System.Diagnostics;
 
-    using MvcMiniProfiler.Data;
+    using StackExchange.Profiling.Data;
 
     using NHibernate.Driver;
 
@@ -22,12 +22,12 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
         public override IDbCommand CreateCommand()
         {
             var command = base.CreateCommand();
-            if (MvcMiniProfiler.MiniProfiler.Current != null)
+            if (StackExchange.Profiling.MiniProfiler.Current != null)
             {
                 Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateCommand ");
                 command = new ProfiledDbCommand((DbCommand)command,
                 null,
-                MvcMiniProfiler.MiniProfiler.Current);
+                StackExchange.Profiling.MiniProfiler.Current);
                 Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateCommand  Profiling");
             }
             return command;
@@ -36,7 +36,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
         public override IDbConnection CreateConnection()
         {
             Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateConnection ");
-            if (MvcMiniProfiler.MiniProfiler.Current == null)
+            if (StackExchange.Profiling.MiniProfiler.Current == null)
             {
                 return base.CreateConnection();
             }
@@ -44,7 +44,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
             Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlClientDriver - CreateConnection Profiling");
             return new ProfiledDbConnection(
                 base.CreateConnection() as DbConnection,
-                MvcMiniProfiler.MiniProfiler.Current);
+                StackExchange.Profiling.MiniProfiler.Current);
         }
     }
 }

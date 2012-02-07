@@ -12,7 +12,7 @@ namespace Four2n.Orchard.MiniProfiler
     using System;
     using System.Web;
 
-    using MvcMiniProfiler;
+    using StackExchange.Profiling;
 
     public static class MiniProfilerExtensions
     {

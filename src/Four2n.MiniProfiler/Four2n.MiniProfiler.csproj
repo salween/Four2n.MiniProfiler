@@ -48,9 +48,8 @@
       <HintPath>..\..\build\orchard\bin\FluentNHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="MvcMiniProfiler, Version=1.7.0.0, Culture=neutral, PublicKeyToken=b44f9351044011a3, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\MiniProfiler\MvcMiniProfiler.dll</HintPath>
+    <Reference Include="MiniProfiler">
+      <HintPath>..\..\lib\MiniProfiler\MiniProfiler.dll</HintPath>
     </Reference>
     <Reference Include="NHibernate">
       <HintPath>..\..\build\orchard\bin\NHibernate.dll</HintPath>

@@ -11,7 +11,7 @@ namespace Four2n.Orchard.MiniProfiler
 {
     using System;
 
-    using MvcMiniProfiler;
+    using StackExchange.Profiling;
 
     using global::Orchard.Logging;
 
