@@ -43,9 +43,14 @@
     <Reference Include="Autofac, Version=2.2.4.900, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\build\orchard\bin\Autofac.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="FluentNHibernate">
       <HintPath>..\..\build\orchard\bin\FluentNHibernate.dll</HintPath>
+    </Reference>
+    <Reference Include="LinqBridge, Version=1.2.0.0, Culture=neutral, PublicKeyToken=c2b14eb747628076, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\PoorMansTSqlFormatter\LinqBridge.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MiniProfiler">
@@ -61,6 +66,10 @@
     <Reference Include="Orchard.Framework">
       <HintPath>..\..\build\orchard\bin\Orchard.Framework.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="PoorMansTSqlFormatterLib, Version=1.2.2.36561, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\PoorMansTSqlFormatter\PoorMansTSqlFormatterLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -93,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContainerModule.cs" />
+    <Compile Include="Data\PoorMansTSqlFormatter.cs" />
     <Compile Include="Data\Providers\ProfiledSqlCeDataServicesProvider.cs" />
     <Compile Include="Data\Providers\ProfiledSqlClientDriver.cs" />
     <Compile Include="Data\Providers\ProfiledSqlServerCeDriver.cs" />
