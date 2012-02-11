@@ -11,6 +11,8 @@ namespace Four2n.Orchard.MiniProfiler
 {
     using Autofac;
 
+    using Four2n.Orchard.MiniProfiler.Data;
+
     using global::Orchard.Environment;
 
     using StackExchange.Profiling;
@@ -41,7 +43,7 @@ namespace Four2n.Orchard.MiniProfiler
 
         private static void InitProfilerSettings()
         {
-            MiniProfiler.Settings.SqlFormatter = new SqlServerFormatter();
+            MiniProfiler.Settings.SqlFormatter = new PoorMansTSqlFormatter();
             WebRequestProfilerProvider.Settings.UserProvider = new IpAddressIdentity();
         }
     }
