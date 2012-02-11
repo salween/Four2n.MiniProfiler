@@ -56,9 +56,11 @@
     </Reference>
     <Reference Include="Orchard.Core">
       <HintPath>..\..\build\orchard\bin\Orchard.Core.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Orchard.Framework">
       <HintPath>..\..\build\orchard\bin\Orchard.Framework.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
