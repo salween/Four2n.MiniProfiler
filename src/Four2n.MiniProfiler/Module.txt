@@ -2,8 +2,8 @@ Name: Mini Profiler
 AntiForgery: enabled
 Author: 42n, Daniel Dabrowski
 Website: http://orchardprofiler.codeplex.com/
-Version: 0.2
-OrchardVersion: 1.2
+Version: 0.2.2
+OrchardVersion: 1.3
 Description: Module which delivers profiler functionality.
 FeatureDescription: Profiling web site using mvc mini profiler.
 Category: Developer
