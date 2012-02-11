@@ -13,11 +13,14 @@ namespace Four2n.Orchard.MiniProfiler
 
     using global::Orchard.Environment;
 
+    using StackExchange.Profiling;
+    using StackExchange.Profiling.SqlFormatters;
+
     using Module = Autofac.Module;
 
     public class ContainerModule : Module
     {
-        private IOrchardHost orchardHost;
+        private readonly IOrchardHost orchardHost;
 
         public ContainerModule(IOrchardHost orchardHost)
         {
@@ -26,6 +29,7 @@ namespace Four2n.Orchard.MiniProfiler
 
         protected override void Load(ContainerBuilder moduleBuilder)
         {
+            InitProfilerSettings();
             var currentLogger = ((DefaultOrchardHost)this.orchardHost).Logger;
             if (currentLogger is OrchardHostProxyLogger)
             {
@@ -33,6 +37,12 @@ namespace Four2n.Orchard.MiniProfiler
             }
 
             ((DefaultOrchardHost)this.orchardHost).Logger = new OrchardHostProxyLogger(currentLogger);
+        }
+
+        private static void InitProfilerSettings()
+        {
+            MiniProfiler.Settings.SqlFormatter = new SqlServerFormatter();
+            WebRequestProfilerProvider.Settings.UserProvider = new IpAddressIdentity();
         }
     }
 }
