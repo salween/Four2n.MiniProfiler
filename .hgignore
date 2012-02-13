@@ -19,3 +19,4 @@ syntax: glob
 *.swp
 packages\**
 !packages\repositories.config
+src\Four2n.MiniProfiler.Profile\Logs\**
