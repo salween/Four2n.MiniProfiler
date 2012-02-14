@@ -10,16 +10,19 @@
 namespace Four2n.Orchard.MiniProfiler.Filters
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
-
-    using StackExchange.Profiling;
 
     using global::Orchard;
     using global::Orchard.DisplayManagement;
     using global::Orchard.Mvc.Filters;
     using global::Orchard.Security;
     using global::Orchard.UI.Admin;
+
+    using StackExchange.Profiling;
 
     /// <summary>
     /// Filter for injecting profiler view code.
@@ -31,6 +34,8 @@ namespace Four2n.Orchard.MiniProfiler.Filters
         private const string ActionKey = "G:ActExec";
 
         private const string ResultKey = "G:ResExec";
+
+        private const string stackKey = "ProfilingActionFilterStack";
 
         private readonly IAuthorizer authorizer;
         private readonly dynamic shapeFactory;
@@ -54,15 +59,38 @@ namespace Four2n.Orchard.MiniProfiler.Filters
 
         public void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            MiniProfiler.Current.StepStop(ActionKey, filterContext.HttpContext);
+            var stack = HttpContext.Current.Items[stackKey] as Stack<IDisposable>;
+            if (stack != null && stack.Count > 0)
+            {
+                stack.Pop().Dispose();
+            }
         }
 
         public void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            MiniProfiler.Current.StepStart(
-                ResultKey,
-                filterContext.HttpContext,
-                string.Format("Action: {0}.{1}", filterContext.ActionDescriptor.ControllerDescriptor.ControllerName, filterContext.ActionDescriptor.ActionName));
+            var mp = MiniProfiler.Current;
+            if (mp != null)
+            {
+                var stack = HttpContext.Current.Items[stackKey] as Stack<IDisposable>;
+                if (stack == null)
+                {
+                    stack = new Stack<IDisposable>();
+                    HttpContext.Current.Items[stackKey] = stack;
+                }
+
+                var profiler = MiniProfiler.Current;
+                if (profiler != null)
+                {
+                    var tokens = filterContext.RouteData.DataTokens;
+                    string area = tokens.ContainsKey("area") && !string.IsNullOrEmpty(tokens["area"].ToString()) ?
+                        string.Concat(tokens["area"], ".") :
+                        string.Empty;
+                    string controller = string.Concat(filterContext.Controller.ToString().Split('.').Last(), ".");
+                    string action = filterContext.ActionDescriptor.ActionName;
+
+                    stack.Push(profiler.Step("Controller: " + area + controller + action));
+                }
+            }
         }
 
         public void OnResultExecuted(ResultExecutedContext filterContext)
