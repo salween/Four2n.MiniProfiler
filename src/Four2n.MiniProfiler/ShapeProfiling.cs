@@ -11,14 +11,15 @@
     using global::Orchard;
     using global::Orchard.DisplayManagement.Implementation;
     using global::Orchard.DisplayManagement.Shapes;
+    using Four2n.Orchard.MiniProfiler.Services;
+    using global::Orchard.ContentManagement;
 
-    public class ShapeProfiling : IShapeFactoryEvents, IShapeDisplayEvents
+    public class ShapeProfiling : IShapeFactoryEvents
     {
-        private IOrchardServices services;
-
-        public ShapeProfiling(IOrchardServices services)
+        private readonly IProfilerService _profiler;
+        public ShapeProfiling(IProfilerService profiler)
         {
-            this.services = services;
+            _profiler = profiler;
         }
 
         public void Creating(ShapeCreatingContext context)
@@ -28,54 +29,35 @@
         public void Created(ShapeCreatedContext context)
         {
             var shapeMetadata = (ShapeMetadata)context.Shape.Metadata;
-            if (shapeMetadata.Type.Equals("Zone") || context.Shape.ContentItem == null)
+       /*     if (shapeMetadata.Type.Equals("Zone") || context.Shape.ContentItem == null)
             {
                 return;
-            }
+            }*/
 
             shapeMetadata.OnDisplaying(this.OnDisplaying);
             shapeMetadata.OnDisplayed(this.OnDisplayed);
         }
 
-        public void Displaying(ShapeDisplayingContext context)
-        {
-/*
-            if (context.ShapeMetadata.Type.Equals("Zone"))
-            {
-                return;
-            }
-            Debug.WriteLine("[Four2n.MiniProfiler] - ShapeProfiling - Displaying ");
-            MiniProfiler.Current.StepStart((string)context.Shape.ToString() + "Dis", services.WorkContext.HttpContext, context.ShapeMetadata.Type + " - Display");
-*/
-        }
-
-        public void Displayed(ShapeDisplayedContext context)
-        {
-/*
-            if (context.ShapeMetadata.Type.Equals("Zone"))
-            {
-                return;
-            }
-            Debug.WriteLine("[Four2n.MiniProfiler] - ShapeProfiling - Displayed ");
-            MiniProfiler.Current.StepStop((string)context.Shape.ToString() + "Dis", services.WorkContext.HttpContext);
-*/
-        }
-
         public void OnDisplaying(ShapeDisplayingContext context)
         {
             Debug.WriteLine(string.Format("[Four2n.MiniProfiler] - ShapeProfiling - Displaying {0}",  context.ShapeMetadata.Type + " - Display"));
-            var message = string.Concat(
-                context.ShapeMetadata.Type,
-                " ",
-                (string)(context.Shape.ContentItem != null ? context.Shape.ContentItem.ContentType : null),
-                " Display");
-            MiniProfiler.Current.StepStart(string.Concat((string)context.Shape.ToString(), "Dis"), services.WorkContext.HttpContext, message);
+            IContent content = null;
+            if (context.Shape.ContentItem != null) {
+                content = context.Shape.ContentItem;
+            }
+            else if (context.Shape.ContentPart != null) {
+                content = context.Shape.ContentPart;
+            }
+            var message = String.Format("Shape Display: {0} ({1}) ({2})",
+                context.ShapeMetadata.Type,context.ShapeMetadata.DisplayType,
+                (string)(content != null ? content.ContentItem.ContentType : "non-content"));
+            _profiler.StepStart(string.Concat((string)context.Shape.ToString(), "Dis"), message,true);
         }
 
         public void OnDisplayed(ShapeDisplayedContext context)
         {
             Debug.WriteLine(string.Format("[Four2n.MiniProfiler] - ShapeProfiling - Displayed {0}", context.ShapeMetadata.Type + " - Display"));
-            MiniProfiler.Current.StepStop(string.Concat((string)context.Shape.ToString(), "Dis"), services.WorkContext.HttpContext);
+            _profiler.StepStop(string.Concat((string)context.Shape.ToString(), "Dis"));
         }
     }
 }

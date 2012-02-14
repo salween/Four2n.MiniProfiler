@@ -20,6 +20,7 @@ namespace Four2n.Orchard.MiniProfiler.Filters
     using global::Orchard.Mvc.Filters;
     using global::Orchard.Security;
     using global::Orchard.UI.Admin;
+    using Four2n.Orchard.MiniProfiler.Services;
 
     /// <summary>
     /// Filter for injecting profiler view code.
@@ -36,16 +37,18 @@ namespace Four2n.Orchard.MiniProfiler.Filters
         private readonly dynamic shapeFactory;
 
         private readonly WorkContext workContext;
+        private readonly IProfilerService _profiler;
 
         #endregion
 
         #region Constructors and Destructors
 
-        public ProfilerFilter(WorkContext workContext, IAuthorizer authorizer, IShapeFactory shapeFactory)
+        public ProfilerFilter(WorkContext workContext, IAuthorizer authorizer, IShapeFactory shapeFactory, IProfilerService profiler)
         {
             this.workContext = workContext;
             this.shapeFactory = shapeFactory;
             this.authorizer = authorizer;
+            _profiler = profiler;
         }
 
         #endregion
@@ -54,20 +57,28 @@ namespace Four2n.Orchard.MiniProfiler.Filters
 
         public void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            MiniProfiler.Current.StepStop(ActionKey, filterContext.HttpContext);
+            _profiler.StepStop(ActionKey);
         }
 
         public void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            MiniProfiler.Current.StepStart(
-                ResultKey,
-                filterContext.HttpContext,
+            _profiler.StepStart(
+                ActionKey,
                 string.Format("Action: {0}.{1}", filterContext.ActionDescriptor.ControllerDescriptor.ControllerName, filterContext.ActionDescriptor.ActionName));
         }
 
         public void OnResultExecuted(ResultExecutedContext filterContext)
         {
-            MiniProfiler.Current.StepStop(ResultKey, filterContext.HttpContext);
+            // should only run on a full view rendering result
+            if (!(filterContext.Result is ViewResult)) {
+                return;
+            }
+
+            if (!this.IsActivable()) {
+                return;
+            }
+
+            _profiler.StepStop(ResultKey);
         }
 
         public void OnResultExecuting(ResultExecutingContext filterContext)
@@ -86,7 +97,7 @@ namespace Four2n.Orchard.MiniProfiler.Filters
             var head = this.workContext.Layout.Head;
             head.Add(this.shapeFactory.MiniProfilerTemplate());
 
-            MiniProfiler.Current.StepStart(ResultKey, filterContext.HttpContext, string.Format("Result: {0}", filterContext.Result.ToString()));
+            _profiler.StepStart(ResultKey, string.Format("Result: {0}", filterContext.Result.ToString()));
         }
 
         #endregion
