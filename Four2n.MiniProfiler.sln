@@ -6,9 +6,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Four2n.MiniProfiler.Profile", "src\Four2n.MiniProfiler.Profile\Four2n.MiniProfiler.Profile.csproj", "{E7CF76F7-C919-4D34-917D-7AF66D09D1D8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8A8CF6F9-01AF-41A3-9CAC-FE4BC9C336B4}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
