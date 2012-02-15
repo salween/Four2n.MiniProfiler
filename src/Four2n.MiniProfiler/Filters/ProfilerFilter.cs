@@ -10,10 +10,11 @@
 namespace Four2n.Orchard.MiniProfiler.Filters
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
-
-    using StackExchange.Profiling;
 
     using global::Orchard;
     using global::Orchard.DisplayManagement;
@@ -22,6 +23,8 @@ namespace Four2n.Orchard.MiniProfiler.Filters
     using global::Orchard.UI.Admin;
     using Four2n.Orchard.MiniProfiler.Services;
 
+    using StackExchange.Profiling;
+
     /// <summary>
     /// Filter for injecting profiler view code.
     /// </summary>
@@ -29,15 +32,12 @@ namespace Four2n.Orchard.MiniProfiler.Filters
     {
         #region Constants and Fields
 
-        private const string ActionKey = "G:ActExec";
-
-        private const string ResultKey = "G:ResExec";
-
         private readonly IAuthorizer authorizer;
         private readonly dynamic shapeFactory;
 
         private readonly WorkContext workContext;
-        private readonly IProfilerService _profiler;
+
+        private readonly IProfilerService profiler;
 
         #endregion
 
@@ -48,7 +48,7 @@ namespace Four2n.Orchard.MiniProfiler.Filters
             this.workContext = workContext;
             this.shapeFactory = shapeFactory;
             this.authorizer = authorizer;
-            _profiler = profiler;
+            this.profiler = profiler;
         }
 
         #endregion
@@ -57,28 +57,34 @@ namespace Four2n.Orchard.MiniProfiler.Filters
 
         public void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            _profiler.StepStop(ActionKey);
+            this.profiler.StepStop(StepKeys.ActionFilter);
         }
 
         public void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            _profiler.StepStart(
-                ActionKey,
-                string.Format("Action: {0}.{1}", filterContext.ActionDescriptor.ControllerDescriptor.ControllerName, filterContext.ActionDescriptor.ActionName));
+            var tokens = filterContext.RouteData.DataTokens;
+            string area = tokens.ContainsKey("area") && !string.IsNullOrEmpty(tokens["area"].ToString()) ?
+                string.Concat(tokens["area"], ".") :
+                string.Empty;
+            string controller = string.Concat(filterContext.Controller.ToString().Split('.').Last(), ".");
+            string action = filterContext.ActionDescriptor.ActionName;
+            this.profiler.StepStart(StepKeys.ActionFilter, "Controller: " + area + controller + action);
         }
 
         public void OnResultExecuted(ResultExecutedContext filterContext)
         {
             // should only run on a full view rendering result
-            if (!(filterContext.Result is ViewResult)) {
+            if (!(filterContext.Result is ViewResult))
+            {
                 return;
             }
 
-            if (!this.IsActivable()) {
+            if (!this.IsActivable())
+            {
                 return;
             }
 
-            _profiler.StepStop(ResultKey);
+            this.profiler.StepStop(StepKeys.ResultFilter);
         }
 
         public void OnResultExecuting(ResultExecutingContext filterContext)
@@ -94,10 +100,10 @@ namespace Four2n.Orchard.MiniProfiler.Filters
                 return;
             }
 
-            var head = this.workContext.Layout.Head;
-            head.Add(this.shapeFactory.MiniProfilerTemplate());
+            var place = this.workContext.Layout.Footer ?? this.workContext.Layout.Head;
+            place.Add(this.shapeFactory.MiniProfilerTemplate());
 
-            _profiler.StepStart(ResultKey, string.Format("Result: {0}", filterContext.Result.ToString()));
+            this.profiler.StepStart(StepKeys.ResultFilter, string.Format("Result: {0}", filterContext.Result));
         }
 
         #endregion

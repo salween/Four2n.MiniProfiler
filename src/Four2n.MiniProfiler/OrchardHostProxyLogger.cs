@@ -11,13 +11,13 @@ namespace Four2n.Orchard.MiniProfiler
 {
     using System;
 
-    using StackExchange.Profiling;
-
     using global::Orchard.Logging;
+
+    using StackExchange.Profiling;
 
     public class OrchardHostProxyLogger : ILogger
     {
-        private ILogger logger;
+        private readonly ILogger logger;
 
         public OrchardHostProxyLogger(ILogger logger)
         {

@@ -1,20 +1,20 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IProfilerService.cs" company="Daniel Dabrowski - rod.42n.pl">
+// <copyright file="StepKeys.cs" company="Daniel Dabrowski - rod.42n.pl">
 //   Copyright (c) 2008 Daniel Dabrowski - 42n. All rights reserved.
 // </copyright>
 // <summary>
-//   Defines the IProfilerService type.
+//   Defines the StepKeys type.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Four2n.Orchard.MiniProfiler.Services
+namespace Four2n.Orchard.MiniProfiler
 {
-    using global::Orchard;
-
-    public interface IProfilerService : IDependency
+    public class StepKeys
     {
-        void StepStart(string key, string message, bool isVerbose = false);
+        public const string ActionFilter = "ActionFilter";
 
-        void StepStop(string key);
+        public const string ResultFilter = "ResultFilter";
+
+        public const string ShapeProfiling = "ShapeProfiling";
     }
 }
