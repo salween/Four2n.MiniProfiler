@@ -117,6 +117,7 @@
     <Compile Include="Services\IProfilerService.cs" />
     <Compile Include="Services\ProfilerService.cs" />
     <Compile Include="ShapeProfiling.cs" />
+    <Compile Include="StepKeys.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\MiniProfilerTemplate.cshtml" />

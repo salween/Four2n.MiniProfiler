@@ -1,25 +1,29 @@
-﻿namespace Four2n.Orchard.MiniProfiler
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="ShapeProfiling.cs" company="Daniel Dabrowski - rod.42n.pl">
+//   Copyright (c) 2008 Daniel Dabrowski - 42n. All rights reserved.
+// </copyright>
+// <summary>
+//   Defines the ShapeProfiling type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace Four2n.Orchard.MiniProfiler
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Web;
-
-    using StackExchange.Profiling;
-
-    using global::Orchard;
-    using global::Orchard.DisplayManagement.Implementation;
-    using global::Orchard.DisplayManagement.Shapes;
     using Four2n.Orchard.MiniProfiler.Services;
+
     using global::Orchard.ContentManagement;
+
+    using global::Orchard.DisplayManagement.Implementation;
+
+    using global::Orchard.DisplayManagement.Shapes;
 
     public class ShapeProfiling : IShapeFactoryEvents
     {
-        private readonly IProfilerService _profiler;
+        private readonly IProfilerService profiler;
+
         public ShapeProfiling(IProfilerService profiler)
         {
-            _profiler = profiler;
+            this.profiler = profiler;
         }
 
         public void Creating(ShapeCreatingContext context)
@@ -46,8 +50,8 @@
             {
                 return;
             }
-            Debug.WriteLine("[Four2n.MiniProfiler] - ShapeProfiling - Displaying ");
-            _profiler.StepStart((string)context.Shape.ToString() + "Dis", context.ShapeMetadata.Type + " - Display");
+
+            this.profiler.StepStart(StepKeys.ShapeProfiling, context.ShapeMetadata.Type + " - Display");
         }
 
         public void Displayed(ShapeDisplayedContext context)
@@ -56,30 +60,34 @@
             {
                 return;
             }
-            Debug.WriteLine("[Four2n.MiniProfiler] - ShapeProfiling - Displayed ");
-            _profiler.StepStop((string)context.Shape.ToString() + "Dis");
+
+            this.profiler.StepStop(StepKeys.ShapeProfiling);
         }
 
         public void OnDisplaying(ShapeDisplayingContext context)
         {
-            Debug.WriteLine(string.Format("[Four2n.MiniProfiler] - ShapeProfiling - Displaying {0}",  context.ShapeMetadata.Type + " - Display"));
             IContent content = null;
-            if (context.Shape.ContentItem != null) {
+            if (context.Shape.ContentItem != null)
+            {
                 content = context.Shape.ContentItem;
             }
-            else if (context.Shape.ContentPart != null) {
+            else if (context.Shape.ContentPart != null)
+            {
                 content = context.Shape.ContentPart;
             }
-            var message = String.Format("Shape Display: {0} ({1}) ({2})",
-                context.ShapeMetadata.Type,context.ShapeMetadata.DisplayType,
+
+            var message = string.Format(
+                "Shape Display: {0} ({1}) ({2})",
+                context.ShapeMetadata.Type,
+                context.ShapeMetadata.DisplayType,
                 (string)(content != null ? content.ContentItem.ContentType : "non-content"));
-            _profiler.StepStart(string.Concat((string)context.Shape.ToString(), "Dis"), message,true);
+
+            this.profiler.StepStart(StepKeys.ShapeProfiling, message, true);
         }
 
         public void OnDisplayed(ShapeDisplayedContext context)
         {
-            Debug.WriteLine(string.Format("[Four2n.MiniProfiler] - ShapeProfiling - Displayed {0}", context.ShapeMetadata.Type + " - Display"));
-            _profiler.StepStop(string.Concat((string)context.Shape.ToString(), "Dis"));
+            this.profiler.StepStop(StepKeys.ShapeProfiling);
         }
     }
 }
