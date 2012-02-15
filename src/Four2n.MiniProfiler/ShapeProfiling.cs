@@ -47,7 +47,7 @@
                 return;
             }
             Debug.WriteLine("[Four2n.MiniProfiler] - ShapeProfiling - Displaying ");
-            MiniProfiler.Current.StepStart((string)context.Shape.ToString() + "Dis", services.WorkContext.HttpContext, context.ShapeMetadata.Type + " - Display");
+            _profiler.StepStart((string)context.Shape.ToString() + "Dis", context.ShapeMetadata.Type + " - Display");
         }
 
         public void Displayed(ShapeDisplayedContext context)
@@ -57,7 +57,7 @@
                 return;
             }
             Debug.WriteLine("[Four2n.MiniProfiler] - ShapeProfiling - Displayed ");
-            MiniProfiler.Current.StepStop((string)context.Shape.ToString() + "Dis", services.WorkContext.HttpContext);
+            _profiler.StepStop((string)context.Shape.ToString() + "Dis");
         }
 
         public void OnDisplaying(ShapeDisplayingContext context)

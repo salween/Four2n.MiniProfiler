@@ -45,6 +45,9 @@
       <HintPath>..\..\build\orchard\bin\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ClaySharp">
+      <HintPath>..\..\build\orchard\bin\ClaySharp.dll</HintPath>
+    </Reference>
     <Reference Include="FluentNHibernate">
       <HintPath>..\..\build\orchard\bin\FluentNHibernate.dll</HintPath>
     </Reference>

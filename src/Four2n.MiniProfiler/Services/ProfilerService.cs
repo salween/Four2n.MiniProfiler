@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Collections.Concurrent;
+﻿namespace Four2n.Orchard.MiniProfiler.Services {
+    using System;
+    using System.Collections.Concurrent;
 
-namespace Four2n.Orchard.MiniProfiler.Services {
-
-    using MvcMiniProfiler;
+    using StackExchange.Profiling;
 
     public class ProfilerService : IProfilerService  {
 
