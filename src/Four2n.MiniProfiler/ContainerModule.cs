@@ -47,6 +47,9 @@ namespace Four2n.Orchard.MiniProfiler
         {
             MiniProfiler.Settings.SqlFormatter = new PoorMansTSqlFormatter();
             MiniProfiler.Settings.Storage = new ProfilerStorage(TimeSpan.FromSeconds(30));
+            MiniProfiler.Settings.StackMaxLength = 500;
+            MiniProfiler.Settings.ExcludeAssembly("MiniProfiler");
+            MiniProfiler.Settings.ExcludeAssembly("NHibernate");
             WebRequestProfilerProvider.Settings.UserProvider = new IpAddressIdentity();
         }
     }
