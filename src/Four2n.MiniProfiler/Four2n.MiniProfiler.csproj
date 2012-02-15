@@ -105,10 +105,14 @@
     <Compile Include="Data\Providers\ProfiledSqlServerDataServicesProvider.cs" />
     <Compile Include="Eventer.cs" />
     <Compile Include="Filters\ProfilerFilter.cs" />
-    <Compile Include="MiniProfilerExtensions.cs" />
     <Compile Include="Models\DummyRecord.cs" />
     <Compile Include="OrchardHostProxyLogger.cs" />
     <Compile Include="ProfilerStorage.cs" />
+    <Compile Include="Overrides\ContentPartDriverCoordinator.cs" />
+    <Compile Include="Overrides\DefaultContentDisplay.cs" />
+    <Compile Include="Overrides\ProfilingOrchardEventBus.cs" />
+    <Compile Include="Services\IProfilerService.cs" />
+    <Compile Include="Services\ProfilerService.cs" />
     <Compile Include="ShapeProfiling.cs" />
   </ItemGroup>
   <ItemGroup>
