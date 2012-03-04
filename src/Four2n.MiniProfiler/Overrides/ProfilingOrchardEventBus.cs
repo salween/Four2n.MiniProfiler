@@ -1,10 +1,12 @@
-﻿    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using Orchard.Localization;
-    using Orchard.Logging;
+﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Orchard.Exceptions;
+using Orchard.Localization;
+
 using Orchard.Events;
 using Orchard.Environment.Extensions;
 using Four2n.Orchard.MiniProfiler.Services;
@@ -13,15 +15,17 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
     [OrchardSuppressDependency("Orchard.Events.DefaultOrchardEventBus")]
         public class DefaultOrchardEventBus : IEventBus {
             private readonly Func<IEnumerable<IEventHandler>> _eventHandlers;
+            private readonly IExceptionPolicy _exceptionPolicy;
+            private static readonly ConcurrentDictionary<string, MethodInfo> _interfaceMethodsCache = new ConcurrentDictionary<string, MethodInfo>();  
             private readonly IProfilerService _profiler;
-            public DefaultOrchardEventBus(Func<IEnumerable<IEventHandler>> eventHandlers, IProfilerService profiler) {
+        public DefaultOrchardEventBus(Func<IEnumerable<IEventHandler>> eventHandlers, IExceptionPolicy exceptionPolicy, IProfilerService profiler) {
                 _eventHandlers = eventHandlers;
+                _exceptionPolicy = exceptionPolicy;
                 _profiler = profiler;
-                Logger = NullLogger.Instance;
                 T = NullLocalizer.Instance;
             }
 
-            public ILogger Logger { get; set; }
+
             public Localizer T { get; set; }
 
 
@@ -30,12 +34,12 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
                 // own interceptor working...
                 _profiler.StepStart("EventBusNotify","EventBus: "+messageName);
                 // call ToArray to ensure evaluation has taken place
-                var result = NotifyHandlers(messageName, eventData, true/*failFast*/).ToArray();
+                var result = NotifyHandlers(messageName, eventData).ToArray();
                 _profiler.StepStop("EventBusNotify");
                 return result;
             }
 
-            private IEnumerable<object> NotifyHandlers(string messageName, IDictionary<string, object> eventData, bool failFast) {
+        private IEnumerable<object> NotifyHandlers(string messageName, IDictionary<string, object> eventData) {
                 string[] parameters = messageName.Split('.');
                 if (parameters.Length != 2) {
                     throw new ArgumentException(T("{0} is not formatted correctly", messageName).Text);
@@ -46,8 +50,8 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
                 var eventHandlers = _eventHandlers();
                 foreach (var eventHandler in eventHandlers) {
                     IEnumerable returnValue;
-                    if (TryNotifyHandler(eventHandler, messageName, interfaceName, methodName, eventData, failFast, out returnValue)) {
-                        if (returnValue != null) {
+                if (TryNotifyHandler(eventHandler, messageName, interfaceName, methodName, eventData, out returnValue)) {
+                    if (returnValue != null) {
                             foreach (var value in returnValue) {
                                 yield return value;
                             }
@@ -56,46 +60,43 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
                 }
             }
 
-            private bool TryNotifyHandler(IEventHandler eventHandler, string messageName, string interfaceName, string methodName, IDictionary<string, object> eventData, bool failFast, out IEnumerable returnValue) {
-                try {
-                    return TryInvoke(eventHandler, interfaceName, methodName, eventData, out returnValue);
+        private bool TryNotifyHandler(IEventHandler eventHandler, string messageName, string interfaceName, string methodName, IDictionary<string, object> eventData, out IEnumerable returnValue) {
+            try {
+                    return TryInvoke(eventHandler, interfaceName, methodName, eventData, out returnValue, _profiler);
                 }
-                catch (Exception ex) {
-                    Logger.Error(ex, "{2} thrown from {0} by {1}",
-                                 messageName,
-                                 eventHandler.GetType().FullName,
-                                 ex.GetType().Name);
-
-                    if (failFast)
-                        throw;
-
-                    returnValue = null;
-                    return false;
+            catch (Exception exception) {
+                if (!_exceptionPolicy.HandleException(this, exception)) {
+                    throw;
                 }
+
+                returnValue = null;
+                return false;
             }
+        }
 
-            private bool TryInvoke(IEventHandler eventHandler, string interfaceName, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue) {
-                Type type = eventHandler.GetType();
+        private static bool TryInvoke(IEventHandler eventHandler, string interfaceName, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue, IProfilerService profiler) {
+            Type type = eventHandler.GetType();
                 foreach (var interfaceType in type.GetInterfaces()) {
                     if (String.Equals(interfaceType.Name, interfaceName, StringComparison.OrdinalIgnoreCase)) {
-                        return TryInvokeMethod(eventHandler, interfaceType, methodName, arguments, out returnValue);
+                        return TryInvokeMethod(eventHandler, interfaceType, methodName, arguments, out returnValue, profiler);
                     }
                 }
                 returnValue = null;
                 return false;
             }
 
-            private bool TryInvokeMethod(IEventHandler eventHandler, Type interfaceType, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue) {
-                MethodInfo method = GetMatchingMethod(eventHandler, interfaceType, methodName, arguments);
+        private static bool TryInvokeMethod(IEventHandler eventHandler, Type interfaceType, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue, IProfilerService profiler) {
+            MethodInfo method = _interfaceMethodsCache.GetOrAdd(String.Concat(eventHandler.GetType().Name + "_" + interfaceType.Name, "_", methodName, "_", String.Join("_", arguments.Keys)), GetMatchingMethod(eventHandler, interfaceType, methodName, arguments));
+
                 if (method != null) {
                     var parameters = new List<object>();
                     foreach (var methodParameter in method.GetParameters()) {
                         parameters.Add(arguments[methodParameter.Name]);
                     }
                     var key= "EventBus:"+eventHandler.GetType().FullName +"."+ methodName;
-                    _profiler.StepStart(key,String.Format("EventBus: {0}",eventHandler.GetType().FullName +"."+ methodName),true);
+                    profiler.StepStart(key,String.Format("EventBus: {0}",eventHandler.GetType().FullName +"."+ methodName),true);
                     var result = method.Invoke(eventHandler, parameters.ToArray());
-                    _profiler.StepStop(key);
+                    profiler.StepStop(key);
                     returnValue = result as IEnumerable;
                     if (returnValue == null && result != null)
                         returnValue = new[] { result };
@@ -105,7 +106,7 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
                 return false;
             }
 
-            private MethodInfo GetMatchingMethod(IEventHandler eventHandler, Type interfaceType, string methodName, IDictionary<string, object> arguments) {
+        private static MethodInfo GetMatchingMethod(IEventHandler eventHandler, Type interfaceType, string methodName, IDictionary<string, object> arguments) {
                 var allMethods = new List<MethodInfo>(interfaceType.GetMethods());
                 var candidates = new List<MethodInfo>(allMethods);
 
