@@ -42,28 +42,28 @@
   <ItemGroup>
     <Reference Include="Autofac, Version=2.2.4.900, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\build\orchard\bin\Autofac.dll</HintPath>
+      <HintPath>..\..\build\orchard14\bin\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ClaySharp">
-      <HintPath>..\..\build\orchard\bin\ClaySharp.dll</HintPath>
+      <HintPath>..\..\build\orchard14\bin\ClaySharp.dll</HintPath>
     </Reference>
     <Reference Include="FluentNHibernate">
-      <HintPath>..\..\build\orchard\bin\FluentNHibernate.dll</HintPath>
+      <HintPath>..\..\build\orchard14\bin\FluentNHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MiniProfiler">
       <HintPath>..\..\lib\MiniProfiler\MiniProfiler.dll</HintPath>
     </Reference>
     <Reference Include="NHibernate">
-      <HintPath>..\..\build\orchard\bin\NHibernate.dll</HintPath>
+      <HintPath>..\..\build\orchard14\bin\NHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Orchard.Core">
-      <HintPath>..\..\build\orchard\bin\Orchard.Core.dll</HintPath>
+      <HintPath>..\..\build\orchard14\bin\Orchard.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Orchard.Framework">
-      <HintPath>..\..\build\orchard\bin\Orchard.Framework.dll</HintPath>
+      <HintPath>..\..\build\orchard14\bin\Orchard.Framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="PoorMansTSqlFormatterLib, Version=1.2.2.36561, Culture=neutral, processorArchitecture=MSIL">
