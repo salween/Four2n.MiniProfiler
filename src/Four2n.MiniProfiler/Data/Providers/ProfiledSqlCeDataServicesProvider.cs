@@ -9,11 +9,9 @@
 
 namespace Four2n.Orchard.MiniProfiler.Data.Providers
 {
-    using System.Diagnostics;
-
     using FluentNHibernate.Cfg.Db;
-
     using global::Orchard.Environment.Extensions;
+    using MsSqlCeConfiguration = global::Orchard.Data.Providers.MsSqlCeConfiguration;
 
     [OrchardSuppressDependency("Orchard.Data.Providers.SqlCeDataServicesProvider")]
     public class ProfiledSqlCeDataServicesProvider : global::Orchard.Data.Providers.SqlCeDataServicesProvider

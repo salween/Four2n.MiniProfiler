@@ -21,6 +21,10 @@
     </UpgradeBackupLocation>
     <TargetFrameworkProfile />
     <UseIISExpress>false</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,7 +46,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Autofac, Version=2.2.4.900, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+    <Reference Include="Autofac">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Orchard\bin\Autofac.dll</HintPath>
       <Private>True</Private>
@@ -104,6 +108,8 @@
   <ItemGroup>
     <Compile Include="ContainerModule.cs" />
     <Compile Include="Data\PoorMansTSqlFormatter.cs" />
+    <Compile Include="Data\Providers\ProfiledMySqlClientDriver.cs" />
+    <Compile Include="Data\Providers\ProfiledMySqlServerDataServicesProvider.cs" />
     <Compile Include="Data\Providers\ProfiledSqlCeDataServicesProvider.cs" />
     <Compile Include="Data\Providers\ProfiledSqlClientDriver.cs" />
     <Compile Include="Data\Providers\ProfiledSqlServerCeDriver.cs" />
@@ -112,10 +118,10 @@
     <Compile Include="Filters\ProfilerFilter.cs" />
     <Compile Include="Models\DummyRecord.cs" />
     <Compile Include="OrchardHostProxyLogger.cs" />
-    <Compile Include="ProfilerStorage.cs" />
     <Compile Include="Overrides\ContentPartDriverCoordinator.cs" />
-    <Compile Include="Overrides\DefaultContentDisplay.cs" />
+    <Compile Include="Overrides\ProfilingContentDisplay.cs" />
     <Compile Include="Overrides\ProfilingOrchardEventBus.cs" />
+    <Compile Include="ProfilerStorage.cs" />
     <Compile Include="Services\IProfilerService.cs" />
     <Compile Include="Services\ProfilerService.cs" />
     <Compile Include="ShapeProfiling.cs" />
@@ -124,6 +130,7 @@
   <ItemGroup>
     <Content Include="Views\MiniProfilerTemplate.cshtml" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
