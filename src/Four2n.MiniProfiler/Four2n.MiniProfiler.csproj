@@ -58,8 +58,7 @@
       <HintPath>..\Orchard\bin\FluentNHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="MiniProfiler, Version=2.0.2.0, Culture=neutral, PublicKeyToken=b44f9351044011a3, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MiniProfiler">
       <HintPath>..\..\packages\MiniProfiler.2.0.2\lib\net40\MiniProfiler.dll</HintPath>
     </Reference>
     <Reference Include="NHibernate">
@@ -96,7 +95,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContainerModule.cs" />
+    <Compile Include="Data\AdoNet\ProfiledSqlClientBatchingBatcher.cs" />
+    <Compile Include="Data\AdoNet\ProfiledSqlClientBatchingBatcherFactory.cs" />
     <Compile Include="Data\PoorMansTSqlFormatter.cs" />
+    <Compile Include="Data\ProfiledSqlCommand.cs" />
     <Compile Include="Data\Providers\ProfiledMySqlClientDriver.cs" />
     <Compile Include="Data\Providers\ProfiledMySqlServerDataServicesProvider.cs" />
     <Compile Include="Data\Providers\ProfiledSqlCeDataServicesProvider.cs" />
