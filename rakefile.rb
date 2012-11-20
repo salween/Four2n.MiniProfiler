@@ -3,6 +3,7 @@ require 'bundler/setup'
 
 gem 'albacore'
 require 'albacore'
+require 'rake/clean'
 
 ORCHARD_VERSION = "1.6"
 
@@ -16,6 +17,9 @@ dirs = {
     :buildtools     => File.expand_path("tools/build")
 }
 
+CLEAN.clear()
+CLEAN.include(dirs[:build] + '/*')
+CLEAN.exclude('**/.gitignore')
 
 unzip :extractOrchardDependency do |unzip|
     unzip.destination = dirs[:dependencies]
@@ -31,7 +35,7 @@ task :copyOrchardLocalizationDependency do
 end
 
 task :linkOrchardModules do
-    modules = FileList.new(dirs[:src] + "/app/*OrchardModule*")
+    modules = FileList.new(dirs[:src] + "/Four2n.MiniProfiler/")
     modules.each do |item|
         link = dirs[:orchard] + "\\Modules\\" + item.split("/").last
         target = item.gsub("/", "\\");
@@ -53,7 +57,7 @@ task :linkOrchardThemes do
 end
 
 desc "Preparing development environment"
-task :prepareDevelopment => [:copyOrchardDependency, :linkOrchardModules, :linkOrchardThemes]
+task :prepareDevelopment => [:clean, :copyOrchardDependency, :linkOrchardModules, :linkOrchardThemes]
 
 desc "Starts Orchard application through IISExpress"
 exec :runIISExpress do |cmd|
