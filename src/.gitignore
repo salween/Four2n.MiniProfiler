@@ -1,0 +1,17 @@
+# VS generated files #
+######################
+*.suo
+*.user
+[Bb]in/
+[Oo]bj/
+StyleCop.Cache
+
+# R# generated files #
+######################
+_ReSharper*/
+
+# NCrunch generated files #
+###########################
+_NCrunch*/
+*.ncrunchsolution
+*.ncrunchproject

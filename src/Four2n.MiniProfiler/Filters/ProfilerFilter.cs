@@ -57,6 +57,7 @@ namespace Four2n.Orchard.MiniProfiler.Filters
 
         public void OnActionExecuted(ActionExecutedContext filterContext)
         {
+            
             this.profiler.StepStop(StepKeys.ActionFilter);
         }
 
