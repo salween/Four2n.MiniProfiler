@@ -9,40 +9,31 @@
 
 namespace Four2n.Orchard.MiniProfiler.Data.Providers
 {
+    using System;
     using System.Data;
     using System.Data.Common;
-    using System.Diagnostics;
-
+    using AdoNet;
+    using NHibernate.AdoNet;
     using NHibernate.Driver;
 
-    using StackExchange.Profiling.Data;
-
-    public class ProfiledSqlClientDriver : SqlClientDriver
+    public class ProfiledSqlClientDriver : SqlClientDriver, IEmbeddedBatcherFactoryProvider
     {
+        Type IEmbeddedBatcherFactoryProvider.BatcherFactoryClass
+        {
+            get { return typeof(ProfiledSqlClientBatchingBatcherFactory); }
+        }
+
         public override IDbCommand CreateCommand()
         {
             var command = base.CreateCommand();
             if (StackExchange.Profiling.MiniProfiler.Current != null)
             {
-                command = new ProfiledDbCommand(
+                command = new ProfiledSqlCommand(
                     (DbCommand)command,
-                    (ProfiledDbConnection)command.Connection,
                     StackExchange.Profiling.MiniProfiler.Current);
             }
 
             return command;
-        }
-
-        public override IDbConnection CreateConnection()
-        {
-            if (StackExchange.Profiling.MiniProfiler.Current == null)
-            {
-                return base.CreateConnection();
-            }
-
-            return new ProfiledDbConnection(
-                base.CreateConnection() as DbConnection,
-                StackExchange.Profiling.MiniProfiler.Current);
         }
     }
 }
