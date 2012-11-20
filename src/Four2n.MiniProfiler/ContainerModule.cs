@@ -46,7 +46,7 @@ namespace Four2n.Orchard.MiniProfiler
         private static void InitProfilerSettings()
         {
             MiniProfiler.Settings.SqlFormatter = new PoorMansTSqlFormatter();
-            MiniProfiler.Settings.Storage = new ProfilerStorage(TimeSpan.FromSeconds(30));
+            MiniProfiler.Settings.Storage = new HttpRuntimeCacheStorage(TimeSpan.FromHours(1));
             MiniProfiler.Settings.StackMaxLength = 500;
             MiniProfiler.Settings.ExcludeAssembly("MiniProfiler");
             MiniProfiler.Settings.ExcludeAssembly("NHibernate");
