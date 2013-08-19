@@ -13,8 +13,8 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
     using FluentNHibernate.Cfg.Db;
     using global::Orchard.Environment.Extensions;
 
-    [OrchardSuppressDependency("Orchard.Data.Providers.MySqklDataServicesProvider")]
-    public class ProfiledMySqlServerDataServicesProvider : global::Orchard.Data.Providers.MySqklDataServicesProvider
+    [OrchardSuppressDependency("Orchard.Data.Providers.MySqlDataServicesProvider")]
+    public class ProfiledMySqlServerDataServicesProvider : global::Orchard.Data.Providers.MySqlDataServicesProvider
     {
         public ProfiledMySqlServerDataServicesProvider(string dataFolder, string connectionString)
             : base(dataFolder, connectionString)
@@ -23,7 +23,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
 
         public static string ProviderName
         {
-            get { return global::Orchard.Data.Providers.MySqklDataServicesProvider.ProviderName; }
+            get { return global::Orchard.Data.Providers.MySqlDataServicesProvider.ProviderName; }
         }
 
         public override IPersistenceConfigurer GetPersistenceConfigurer(bool createDatabase)

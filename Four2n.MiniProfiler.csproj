@@ -98,17 +98,29 @@
     <Compile Include="Data\AdoNet\ProfiledSqlClientBatchingBatcherFactory.cs" />
     <Compile Include="Data\PoorMansTSqlFormatter.cs" />
     <Compile Include="Data\ProfiledSqlCommand.cs" />
-    <Compile Include="Data\Providers\ProfiledMySqlClientDriver.cs" />
-    <Compile Include="Data\Providers\ProfiledMySqlServerDataServicesProvider.cs" />
-    <Compile Include="Data\Providers\ProfiledSqlCeDataServicesProvider.cs" />
-    <Compile Include="Data\Providers\ProfiledSqlClientDriver.cs" />
-    <Compile Include="Data\Providers\ProfiledSqlServerCeDriver.cs" />
-    <Compile Include="Data\Providers\ProfiledSqlServerDataServicesProvider.cs" />
+    <Compile Include="Data\Providers\ProfiledMySqlClientDriver.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Data\Providers\ProfiledMySqlServerDataServicesProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Data\Providers\ProfiledSqlCeDataServicesProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Data\Providers\ProfiledSqlClientDriver.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Data\Providers\ProfiledSqlServerCeDriver.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Data\Providers\ProfiledSqlServerDataServicesProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Eventer.cs" />
     <Compile Include="Filters\ProfilerFilter.cs" />
     <Compile Include="Models\DummyRecord.cs" />
     <Compile Include="OrchardHostProxyLogger.cs" />
-    <Compile Include="Overrides\ContentPartDriverCoordinator.cs" />
+    <Compile Include="Overrides\ProfilingContentPartDriverCoordinator.cs" />
     <Compile Include="Overrides\ProfilingContentDisplay.cs" />
     <Compile Include="Overrides\ProfilingOrchardEventBus.cs" />
     <Compile Include="Services\IProfilerService.cs" />
@@ -119,6 +131,7 @@
   <ItemGroup>
     <Content Include="Views\MiniProfilerTemplate.cshtml" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
