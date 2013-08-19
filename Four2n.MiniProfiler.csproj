@@ -49,13 +49,11 @@
     <Reference Include="Autofac">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Orchard.Web\bin\Autofac.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="ClaySharp">
-      <HintPath>..\..\..\Orchard.Web\bin\ClaySharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="FluentNHibernate">
       <HintPath>..\..\..\Orchard.Web\bin\FluentNHibernate.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MiniProfiler">
@@ -63,6 +61,7 @@
     </Reference>
     <Reference Include="NHibernate">
       <HintPath>..\..\..\Orchard.Web\bin\NHibernate.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Orchard.Framework">
       <HintPath>..\..\..\Orchard.Web\bin\Orchard.Framework.dll</HintPath>
