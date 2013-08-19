@@ -48,24 +48,24 @@
   <ItemGroup>
     <Reference Include="Autofac">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Orchard\bin\Autofac.dll</HintPath>
+      <HintPath>..\..\..\Orchard.Web\bin\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ClaySharp">
-      <HintPath>..\Orchard\bin\ClaySharp.dll</HintPath>
+      <HintPath>..\..\..\Orchard.Web\bin\ClaySharp.dll</HintPath>
     </Reference>
     <Reference Include="FluentNHibernate">
-      <HintPath>..\Orchard\bin\FluentNHibernate.dll</HintPath>
+      <HintPath>..\..\..\Orchard.Web\bin\FluentNHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MiniProfiler">
       <HintPath>..\..\packages\MiniProfiler.2.0.2\lib\net40\MiniProfiler.dll</HintPath>
     </Reference>
     <Reference Include="NHibernate">
-      <HintPath>..\Orchard\bin\NHibernate.dll</HintPath>
+      <HintPath>..\..\..\Orchard.Web\bin\NHibernate.dll</HintPath>
     </Reference>
     <Reference Include="Orchard.Framework">
-      <HintPath>..\Orchard\bin\Orchard.Framework.dll</HintPath>
+      <HintPath>..\..\..\Orchard.Web\bin\Orchard.Framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="PoorMansTSqlFormatterLib35">
@@ -75,7 +75,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\lib\aspnetmvc\System.Web.Mvc.dll</HintPath>
+      <HintPath>..\..\..\Orchard.Web\bin\System.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Abstractions" />
