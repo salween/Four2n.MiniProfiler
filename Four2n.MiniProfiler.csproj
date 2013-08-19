@@ -122,6 +122,7 @@
     <Compile Include="OrchardHostProxyLogger.cs" />
     <Compile Include="Overrides\ProfilingContentPartDriverCoordinator.cs" />
     <Compile Include="Overrides\ProfilingContentDisplay.cs" />
+    <Compile Include="Overrides\ProfilingOrchardEventBus.cs" />
     <Compile Include="Services\IProfilerService.cs" />
     <Compile Include="Services\ProfilerService.cs" />
     <Compile Include="ShapeProfiling.cs" />
@@ -130,6 +131,7 @@
   <ItemGroup>
     <Content Include="Views\MiniProfilerTemplate.cshtml" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

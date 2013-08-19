@@ -9,6 +9,8 @@
 
 namespace Four2n.Orchard.MiniProfiler.Data.Providers
 {
+    using System.Diagnostics;
+
     using FluentNHibernate.Cfg.Db;
     using global::Orchard.Environment.Extensions;
     using MsSqlCeConfiguration = global::Orchard.Data.Providers.MsSqlCeConfiguration;
@@ -28,6 +30,7 @@ namespace Four2n.Orchard.MiniProfiler.Data.Providers
 
         public override IPersistenceConfigurer GetPersistenceConfigurer(bool createDatabase)
         {
+            Debug.WriteLine("[Four2n.MiniProfiler] - ProfiledSqlCeDataServicesProvider - GetPersistenceConfigurer ");
             var persistence = (MsSqlCeConfiguration)base.GetPersistenceConfigurer(createDatabase);
             return persistence.Driver(typeof(ProfiledSqlServerCeDriver).AssemblyQualifiedName);
         }

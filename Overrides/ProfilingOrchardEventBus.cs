@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Autofac.Features.Indexed;
 using Orchard.Exceptions;
 using Orchard.Localization;
 
@@ -13,21 +14,20 @@ using Four2n.Orchard.MiniProfiler.Services;
 
 namespace  Four2n.Orchard.MiniProfiler.Overrides {
     [OrchardSuppressDependency("Orchard.Events.DefaultOrchardEventBus")]
-        public class DefaultOrchardEventBus : IEventBus {
-            private readonly Func<IEnumerable<IEventHandler>> _eventHandlers;
+        public class ProfiledOrchardEventBus : IEventBus {
+            private readonly IIndex<string, IEnumerable<IEventHandler>> _eventHandlers;
             private readonly IExceptionPolicy _exceptionPolicy;
-            private static readonly ConcurrentDictionary<string, MethodInfo> _interfaceMethodsCache = new ConcurrentDictionary<string, MethodInfo>();  
+            private static readonly ConcurrentDictionary<string, Tuple<ParameterInfo[], Func<IEventHandler, object[], object>>> _delegateCache = new ConcurrentDictionary<string, Tuple<ParameterInfo[], Func<IEventHandler, object[], object>>>();
+
             private readonly IProfilerService _profiler;
-        public DefaultOrchardEventBus(Func<IEnumerable<IEventHandler>> eventHandlers, IExceptionPolicy exceptionPolicy, IProfilerService profiler) {
+            public ProfiledOrchardEventBus(IIndex<string, IEnumerable<IEventHandler>> eventHandlers, IExceptionPolicy exceptionPolicy, IProfilerService profiler) {
                 _eventHandlers = eventHandlers;
                 _exceptionPolicy = exceptionPolicy;
                 _profiler = profiler;
                 T = NullLocalizer.Instance;
             }
 
-
             public Localizer T { get; set; }
-
 
             public IEnumerable Notify(string messageName, IDictionary<string, object> eventData) {
                 // NOTE: We can't profile everything because EventsInterceptor performs some work that's a bit harder to profile without forking or getting our
@@ -40,30 +40,30 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
             }
 
         private IEnumerable<object> NotifyHandlers(string messageName, IDictionary<string, object> eventData) {
-                string[] parameters = messageName.Split('.');
-                if (parameters.Length != 2) {
-                    throw new ArgumentException(T("{0} is not formatted correctly", messageName).Text);
-                }
-                string interfaceName = parameters[0];
-                string methodName = parameters[1];
+            string[] parameters = messageName.Split('.');
+            if (parameters.Length != 2) {
+                throw new ArgumentException(T("{0} is not formatted correctly", messageName).Text);
+            }
+            string interfaceName = parameters[0];
+            string methodName = parameters[1];
 
-                var eventHandlers = _eventHandlers();
-                foreach (var eventHandler in eventHandlers) {
-                    IEnumerable returnValue;
-                if (TryNotifyHandler(eventHandler, messageName, interfaceName, methodName, eventData, out returnValue)) {
+            var eventHandlers = _eventHandlers[interfaceName];
+            foreach (var eventHandler in eventHandlers) {
+                IEnumerable returnValue;
+                if (TryNotifyHandler(eventHandler, messageName, interfaceName, methodName, eventData, out returnValue, _profiler)) {
                     if (returnValue != null) {
-                            foreach (var value in returnValue) {
-                                yield return value;
-                            }
+                        foreach (var value in returnValue) {
+                            yield return value;
                         }
                     }
                 }
             }
+        }
 
-        private bool TryNotifyHandler(IEventHandler eventHandler, string messageName, string interfaceName, string methodName, IDictionary<string, object> eventData, out IEnumerable returnValue) {
+        private bool TryNotifyHandler(IEventHandler eventHandler, string messageName, string interfaceName, string methodName, IDictionary<string, object> eventData, out IEnumerable returnValue, IProfilerService profiler) {
             try {
-                    return TryInvoke(eventHandler, interfaceName, methodName, eventData, out returnValue, _profiler);
-                }
+                return TryInvoke(eventHandler, messageName, interfaceName, methodName, eventData, out returnValue, profiler);
+            }
             catch (Exception exception) {
                 if (!_exceptionPolicy.HandleException(this, exception)) {
                     throw;
@@ -74,37 +74,34 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
             }
         }
 
-        private static bool TryInvoke(IEventHandler eventHandler, string interfaceName, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue, IProfilerService profiler) {
-            Type type = eventHandler.GetType();
-                foreach (var interfaceType in type.GetInterfaces()) {
-                    if (String.Equals(interfaceType.Name, interfaceName, StringComparison.OrdinalIgnoreCase)) {
-                        return TryInvokeMethod(eventHandler, interfaceType, methodName, arguments, out returnValue, profiler);
-                    }
-                }
-                returnValue = null;
-                return false;
+        private static bool TryInvoke(IEventHandler eventHandler, string messageName, string interfaceName, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue, IProfilerService profiler)
+        {
+            var matchingInterface = eventHandler.GetType().GetInterface(interfaceName);
+            return TryInvokeMethod(eventHandler, matchingInterface, messageName, interfaceName, methodName, arguments, out returnValue, profiler);
+        }
+
+        private static bool TryInvokeMethod(IEventHandler eventHandler, Type interfaceType, string messageName, string interfaceName, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue, IProfilerService profiler) {
+            var key = eventHandler.GetType().FullName + "_" + messageName + "_" + String.Join("_", arguments.Keys);
+            var cachedDelegate = _delegateCache.GetOrAdd(key, k => {
+                var method = GetMatchingMethod(eventHandler, interfaceType, methodName, arguments);
+                return method != null
+                    ? Tuple.Create(method.GetParameters(), DelegateHelper.CreateDelegate<IEventHandler>(eventHandler.GetType(), method))
+                    : null;
+            });
+
+            if (cachedDelegate != null) {
+                var args = cachedDelegate.Item1.Select(methodParameter => arguments[methodParameter.Name]).ToArray();
+                var result = cachedDelegate.Item2(eventHandler, args);
+
+                returnValue = result as IEnumerable;
+                if (result != null && (returnValue == null || result is string))
+                    returnValue = new[] { result };
+                return true;
             }
 
-        private static bool TryInvokeMethod(IEventHandler eventHandler, Type interfaceType, string methodName, IDictionary<string, object> arguments, out IEnumerable returnValue, IProfilerService profiler) {
-            MethodInfo method = _interfaceMethodsCache.GetOrAdd(String.Concat(eventHandler.GetType().Name + "_" + interfaceType.Name, "_", methodName, "_", String.Join("_", arguments.Keys)), GetMatchingMethod(eventHandler, interfaceType, methodName, arguments));
-
-                if (method != null) {
-                    var parameters = new List<object>();
-                    foreach (var methodParameter in method.GetParameters()) {
-                        parameters.Add(arguments[methodParameter.Name]);
-                    }
-                    var key= "EventBus:"+eventHandler.GetType().FullName +"."+ methodName;
-                    profiler.StepStart(key,String.Format("EventBus: {0}",eventHandler.GetType().FullName +"."+ methodName),true);
-                    var result = method.Invoke(eventHandler, parameters.ToArray());
-                    profiler.StepStop(key);
-                    returnValue = result as IEnumerable;
-                    if (returnValue == null && result != null)
-                        returnValue = new[] { result };
-                    return true;
-                }
-                returnValue = null;
-                return false;
-            }
+            returnValue = null;
+            return false;
+        }
 
         private static MethodInfo GetMatchingMethod(IEventHandler eventHandler, Type interfaceType, string methodName, IDictionary<string, object> arguments) {
                 var allMethods = new List<MethodInfo>(interfaceType.GetMethods());
