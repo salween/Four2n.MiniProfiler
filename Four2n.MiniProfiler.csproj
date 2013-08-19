@@ -59,7 +59,7 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MiniProfiler">
-      <HintPath>..\..\packages\MiniProfiler.2.0.2\lib\net40\MiniProfiler.dll</HintPath>
+      <HintPath>Libs\MiniProfiler\MiniProfiler.dll</HintPath>
     </Reference>
     <Reference Include="NHibernate">
       <HintPath>..\..\..\Orchard.Web\bin\NHibernate.dll</HintPath>
@@ -69,7 +69,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="PoorMansTSqlFormatterLib35">
-      <HintPath>..\..\lib\PoorMansTSqlFormatter\PoorMansTSqlFormatterLib35.dll</HintPath>
+      <HintPath>Libs\PoorMansTSqlFormatter\PoorMansTSqlFormatterLib35.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
