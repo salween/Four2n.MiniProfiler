@@ -1,5 +1,5 @@
-Name: Mini Profiler
-AntiForgery: enabled
+Name: MiniProfiler
+AntiForgery: disabled
 Author: 42n, Daniel Dabrowski
 Website: http://orchardprofiler.codeplex.com/
 Version: 1.7.0.0
@@ -8,3 +8,30 @@ Description: Module which delivers profiler functionality. Mvc Mini profiler (ht
 FeatureDescription: Profiling web site using mvc mini profiler.
 Category: Developer
 Tags: Profiler, Profiling, mvc-mini-profiler
+Dependencies: Orchard.jQuery
+Priority: -9998
+Features:
+    MiniProfiler.ProfilingContent:
+        Name: MiniProfiler - Profiling content
+        Description: Profiling content creation and editing.
+        Category: Developer
+        Priority: -9999
+        Dependencies: Four2n.MiniProfiler
+    MiniProfiler.ProfilingData:
+        Name: MiniProfiler - Profiling data
+        Description: Profiling database queries.
+        Category: Developer
+        Priority: -9999
+        Dependencies: Four2n.MiniProfiler
+    MiniProfiler.ProfilingEvent:
+        Name: MiniProfiler - Profiling events
+        Description: Profiling event handling.
+        Category: Developer
+        Priority: -9999
+        Dependencies: Four2n.MiniProfiler
+    MiniProfiler.ProfilingShapes:
+        Name: MiniProfiler - Profiling shapes
+        Description: Profiling shape creation.
+        Category: Developer
+        Priority: -9999
+        Dependencies: Four2n.MiniProfiler
