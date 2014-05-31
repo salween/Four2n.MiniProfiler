@@ -122,6 +122,11 @@ namespace  Four2n.Orchard.MiniProfiler.Overrides {
                     }
                 }
 
+            // treating common case separately
+            if (candidates.Count == 1) {
+                return candidates[0];
+            }
+
                 if (candidates.Count != 0) {
                     return candidates.OrderBy(x => x.GetParameters().Length).Last();
                 }
