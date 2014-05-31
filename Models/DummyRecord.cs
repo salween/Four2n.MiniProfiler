@@ -9,11 +9,15 @@
 
 namespace Four2n.Orchard.MiniProfiler.Models
 {
+    using Four2n.Orchard.MiniProfiler.Features;
+
     using global::Orchard.ContentManagement.Records;
+    using global::Orchard.Environment.Extensions;
 
     /// <summary>
     /// Dummy record for including this module in data configuring.
     /// </summary>
+    [OrchardFeature(FeatureNames.ProfilingData)]
     public class DummyRecord : ContentPartRecord
     {
     }

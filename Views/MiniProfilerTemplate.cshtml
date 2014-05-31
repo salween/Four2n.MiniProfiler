@@ -1,4 +1,7 @@
 ﻿@{
   Script.Require("jQuery");
 }
-@StackExchange.Profiling.MiniProfiler.RenderIncludes(useExistingjQuery: true, showControls: true)
+@using(Script.Foot())
+{
+    @StackExchange.Profiling.MiniProfiler.RenderIncludes(useExistingjQuery: true, showControls: true)
+}

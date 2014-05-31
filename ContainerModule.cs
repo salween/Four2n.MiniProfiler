@@ -10,16 +10,14 @@
 namespace Four2n.Orchard.MiniProfiler
 {
     using System;
-
     using Autofac;
 
-    using Four2n.Orchard.MiniProfiler.Data;
+    using Four2n.Orchard.MiniProfiler.Formatters;
 
     using global::Orchard.Environment;
 
     using StackExchange.Profiling;
     using StackExchange.Profiling.Storage;
-
     using Module = Autofac.Module;
 
     public class ContainerModule : Module
