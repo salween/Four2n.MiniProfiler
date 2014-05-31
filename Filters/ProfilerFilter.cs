@@ -9,21 +9,17 @@
 
 namespace Four2n.Orchard.MiniProfiler.Filters
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
+
+    using Four2n.Orchard.MiniProfiler.Services;
 
     using global::Orchard;
     using global::Orchard.DisplayManagement;
     using global::Orchard.Mvc.Filters;
     using global::Orchard.Security;
     using global::Orchard.UI.Admin;
-    using Four2n.Orchard.MiniProfiler.Services;
-
-    using StackExchange.Profiling;
 
     /// <summary>
     /// Filter for injecting profiler view code.
@@ -57,7 +53,6 @@ namespace Four2n.Orchard.MiniProfiler.Filters
 
         public void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            
             this.profiler.StepStop(StepKeys.ActionFilter);
         }
 

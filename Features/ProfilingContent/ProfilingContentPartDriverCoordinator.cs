@@ -10,8 +10,10 @@ using Orchard.ContentManagement.Drivers;
 using Orchard.ContentManagement;
 using Orchard;
 using System;
+using Four2n.Orchard.MiniProfiler.Features;
 
-namespace Four2n.MiniProfilter.Overrides {
+namespace Four2n.MiniProfilter.Features.ProfilingContent.Overrides {
+    [OrchardFeature(FeatureNames.ProfilingContent)]
     [OrchardSuppressDependency("Orchard.ContentManagement.Drivers.Coordinators.ContentPartDriverCoordinator")]
     public class ProfilingContentPartDriverCoordinator : ContentHandlerBase {
         private readonly IEnumerable<IContentPartDriver> _drivers;
