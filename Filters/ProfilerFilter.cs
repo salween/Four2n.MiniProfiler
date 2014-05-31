@@ -96,7 +96,7 @@ namespace Four2n.Orchard.MiniProfiler.Filters
                 return;
             }
 
-            var place = this.workContext.Layout.Footer ?? this.workContext.Layout.Head;
+            var place = this.workContext.Layout.Body;
             place.Add(this.shapeFactory.MiniProfilerTemplate());
 
             this.profiler.StepStart(StepKeys.ResultFilter, string.Format("Result: {0}", filterContext.Result));
