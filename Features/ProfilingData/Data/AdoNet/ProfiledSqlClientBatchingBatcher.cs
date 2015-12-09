@@ -85,7 +85,7 @@ namespace Four2n.Orchard.MiniProfiler.Features.ProfilingData.Data.AdoNet
                 this.currentBatch.Append(sqlCommand);
                 if (this.profiler != null)
                 {
-                    this.profiler.ExecuteStart(sqlCommand, ExecuteType.NonQuery);
+                    this.profiler.ExecuteStart(sqlCommand, SqlExecuteType.NonQuery);
                 }
             }
             else
@@ -112,7 +112,7 @@ namespace Four2n.Orchard.MiniProfiler.Features.ProfilingData.Data.AdoNet
 
             if (this.profiler != null)
             {
-                this.profiler.ExecuteStart(this.currentBatch.BatchCommand, ExecuteType.NonQuery);
+                this.profiler.ExecuteStart(this.currentBatch.BatchCommand, SqlExecuteType.NonQuery);
             }
 
             int rowsAffected;
@@ -127,7 +127,7 @@ namespace Four2n.Orchard.MiniProfiler.Features.ProfilingData.Data.AdoNet
 
             if (this.profiler != null)
             {
-                this.profiler.ExecuteFinish(this.currentBatch.BatchCommand, ExecuteType.NonQuery, null);
+                this.profiler.ExecuteFinish(this.currentBatch.BatchCommand, SqlExecuteType.NonQuery, null);
             }
 
             Expectations.VerifyOutcomeBatched(this.totalExpectedRowsAffected, rowsAffected);

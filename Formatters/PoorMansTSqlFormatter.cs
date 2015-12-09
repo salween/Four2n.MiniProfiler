@@ -7,19 +7,18 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Four2n.Orchard.MiniProfiler.Formatters
-{
-    using PoorMansTSqlFormatterLib;
-    using PoorMansTSqlFormatterLib.Formatters;
-    using StackExchange.Profiling;
-    using StackExchange.Profiling.SqlFormatters;
+using System.Collections.Generic;
+using PoorMansTSqlFormatterLib;
+using PoorMansTSqlFormatterLib.Formatters;
+using StackExchange.Profiling;
+using StackExchange.Profiling.SqlFormatters;
 
-    public class PoorMansTSqlFormatter : ISqlFormatter
-    {
-        public string FormatSql(SqlTiming timing)
-        {
+namespace Four2n.Orchard.MiniProfiler.Formatters {
+    public class PoorMansTSqlFormatter : ISqlFormatter {
+        public string FormatSql(string commandText, List<SqlTimingParameter> parameters) {
+
             var sqlFormatter = new SqlServerFormatter();
-            var sqlFormat = sqlFormatter.FormatSql(timing);
+            var sqlFormat = sqlFormatter.GetFormattedSql(commandText,parameters);
 
             var poorMansFormatter = new TSqlStandardFormatter();
             var fullFormatter = new SqlFormattingManager(poorMansFormatter);

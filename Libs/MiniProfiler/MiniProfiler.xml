@@ -8,7 +8,7 @@
             <summary>
             BaseProfilerProvider.  This providers some helper methods which provide access to
             internals not otherwise available.
-            To use, override the <see cref="M:StackExchange.Profiling.BaseProfilerProvider.Start(StackExchange.Profiling.ProfileLevel)"/>, <see cref="M:StackExchange.Profiling.BaseProfilerProvider.Stop(System.Boolean)"/> and <see cref="M:StackExchange.Profiling.BaseProfilerProvider.GetCurrentProfiler"/>
+            To use, override the <see cref="M:StackExchange.Profiling.BaseProfilerProvider.Start(System.String)"/>, <see cref="M:StackExchange.Profiling.BaseProfilerProvider.Stop(System.Boolean)"/> and <see cref="M:StackExchange.Profiling.BaseProfilerProvider.GetCurrentProfiler"/>
             methods.
             </summary>
         </member>
@@ -17,13 +17,16 @@
             A provider used to create <see cref="T:StackExchange.Profiling.MiniProfiler"/> instances and maintain the current instance.
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.IProfilerProvider.Start(StackExchange.Profiling.ProfileLevel)">
+        <member name="M:StackExchange.Profiling.IProfilerProvider.Start(StackExchange.Profiling.ProfileLevel,System.String)">
             <summary>
             Starts a new MiniProfiler and sets it to be current.  By the end of this method
             <see cref="M:StackExchange.Profiling.IProfilerProvider.GetCurrentProfiler"/> should return the new MiniProfiler.
             </summary>
-            <param name="level">The level.</param>
-            <returns>the mini profiler.</returns>
+            <param name="level">The <see cref="T:StackExchange.Profiling.ProfileLevel"/> to use.</param>
+            <param name="sessionName">
+            Allows explicit naming of the new profiling session; when null, an appropriate default will be used, e.g. for
+            a web request, the url will be used for the overall session name.
+            </param>
         </member>
         <member name="M:StackExchange.Profiling.IProfilerProvider.Stop(System.Boolean)">
             <summary>
@@ -38,19 +41,18 @@
             <summary>
             Returns the current MiniProfiler.  This is used by <see cref="P:StackExchange.Profiling.MiniProfiler.Current"/>.
             </summary>
-            <returns>the mini profiler.</returns>
         </member>
-        <member name="M:StackExchange.Profiling.BaseProfilerProvider.Start(StackExchange.Profiling.ProfileLevel)">
+        <member name="M:StackExchange.Profiling.BaseProfilerProvider.Start(StackExchange.Profiling.ProfileLevel,System.String)">
             <summary>
             Starts a new MiniProfiler and sets it to be current.  By the end of this method
             <see cref="M:StackExchange.Profiling.BaseProfilerProvider.GetCurrentProfiler"/> should return the new MiniProfiler.
             </summary>
-            <param name="level">
-            The level.
-            </param>
-            <returns>
-            The <see cref="T:StackExchange.Profiling.MiniProfiler"/>.
-            </returns>
+        </member>
+        <member name="M:StackExchange.Profiling.BaseProfilerProvider.Start(System.String)">
+            <summary>
+            Starts a new MiniProfiler and sets it to be current.  By the end of this method
+            <see cref="M:StackExchange.Profiling.BaseProfilerProvider.GetCurrentProfiler"/> should return the new MiniProfiler.
+            </summary>
         </member>
         <member name="M:StackExchange.Profiling.BaseProfilerProvider.Stop(System.Boolean)">
             <summary>
@@ -63,59 +65,37 @@
             <summary>
             Returns the current MiniProfiler.  This is used by <see cref="P:StackExchange.Profiling.MiniProfiler.Current"/>.
             </summary>
-            <returns>mini profiler.</returns>
         </member>
         <member name="M:StackExchange.Profiling.BaseProfilerProvider.SetProfilerActive(StackExchange.Profiling.MiniProfiler)">
             <summary>
             Sets <paramref name="profiler"/> to be active (read to start profiling)
             This should be called once a new MiniProfiler has been created.
             </summary>
-            <param name="profiler">The profiler to set to active</param>
             <exception cref="T:System.ArgumentNullException">If <paramref name="profiler"/> is null</exception>
         </member>
         <member name="M:StackExchange.Profiling.BaseProfilerProvider.StopProfiler(StackExchange.Profiling.MiniProfiler)">
             <summary>
             Stops the profiler and marks it as inactive.
             </summary>
-            <param name="profiler">The profiler to stop</param>
             <returns>True if successful, false if Stop had previously been called on this profiler</returns>
             <exception cref="T:System.ArgumentNullException">If <paramref name="profiler"/> is null</exception>
         </member>
         <member name="M:StackExchange.Profiling.BaseProfilerProvider.SaveProfiler(StackExchange.Profiling.MiniProfiler)">
             <summary>
             Calls <see cref="M:StackExchange.Profiling.MiniProfiler.Settings.EnsureStorageStrategy"/> to save the current
-            profiler using the current storage settings
+            profiler using the current storage settings. 
+            If <see cref="P:StackExchange.Profiling.MiniProfiler.Storage"/> is set, this will be used.
             </summary>
-            <param name="current">mini profiler</param>
         </member>
         <member name="T:StackExchange.Profiling.ClientTimings">
             <summary>
             Times collected from the client
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.ClientTimings.ClientTimingPrefix">
-            <summary>
-            The client timing prefix.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.ClientTimings.ClientProbesPrefix">
-            <summary>
-            The client probes prefix.
-            </summary>
-        </member>
         <member name="M:StackExchange.Profiling.ClientTimings.FromRequest(System.Web.HttpRequest)">
             <summary>
             Returns null if there is not client timing stuff
             </summary>
-            <param name="request">The request.</param>
-            <returns>the client timings.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.ClientTimings.SentenceCase(System.String)">
-            <summary>
-            convert to sentence case.
-            </summary>
-            <param name="value">The value.</param>
-            <returns>the converted string.</returns>
         </member>
         <member name="P:StackExchange.Profiling.ClientTimings.Timings">
             <summary>
@@ -147,6 +127,656 @@
             Gets or sets the duration.
             </summary>
         </member>
+        <member name="P:StackExchange.Profiling.ClientTimings.ClientTiming.Id">
+            <summary>
+            Unique Identifier used for sql storage. 
+            </summary>
+            <remarks>Not set unless storing in Sql</remarks>
+        </member>
+        <member name="P:StackExchange.Profiling.ClientTimings.ClientTiming.MiniProfilerId">
+            <summary>
+            Used for sql storage
+            </summary>
+            <remarks>Not set unless storing in Sql</remarks>
+        </member>
+        <member name="T:StackExchange.Profiling.CustomTiming">
+            <summary>
+            A custom timing that usually represents a Remote Procedure Call, allowing better
+            visibility into these longer-running calls.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.CustomTiming.#ctor">
+            <summary>
+            Don't use this.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.CustomTiming.#ctor(StackExchange.Profiling.MiniProfiler,System.String,System.Nullable{System.Decimal})">
+            <summary>
+            Returns a new CustomTiming, also initializing its <see cref="P:StackExchange.Profiling.CustomTiming.Id"/> and, optionally, its <see cref="P:StackExchange.Profiling.CustomTiming.StackTraceSnippet"/>.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.CustomTiming.FirstFetchCompleted">
+            <summary>
+            OPTIONAL - call after receiving the first response from your Remote Procedure Call to 
+            properly set <see cref="P:StackExchange.Profiling.CustomTiming.FirstFetchDurationMilliseconds"/>.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.CustomTiming.Stop">
+            <summary>
+            Stops this timing, setting <see cref="P:StackExchange.Profiling.CustomTiming.DurationMilliseconds"/>.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.CustomTiming.ToString">
+            <summary>
+            Returns <see cref="P:StackExchange.Profiling.CustomTiming.CommandString"/> for debugging.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.CustomTiming.Id">
+            <summary>
+            Unique identifier for this <see cref="T:StackExchange.Profiling.CustomTiming"/>.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.CustomTiming.CommandString">
+            <summary>
+            Gets or sets the command that was executed, e.g. "select * from Table" or "INCR my:redis:key"
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.CustomTiming.ExecuteType">
+            <summary>
+            Short name describing what kind of custom timing this is, e.g. "Get", "Query", "Fetch".
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.CustomTiming.StackTraceSnippet">
+            <summary>
+            Gets or sets roughly where in the calling code that this custom timing was executed.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.CustomTiming.StartMilliseconds">
+            <summary>
+            Gets or sets the offset from main <c>MiniProfiler</c> start that this custom command began.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.CustomTiming.DurationMilliseconds">
+            <summary>
+            Gets or sets how long this custom command statement took to execute.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.CustomTiming.FirstFetchDurationMilliseconds">
+            <summary>
+            OPTIONAL - how long this tim took to come back initially from the remote server, 
+            before all data is fetched and command is completed.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.MiniProfilerHandler">
+            <summary>
+            Understands how to route and respond to MiniProfiler UI URLS.
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.MiniProfilerHandler.ResourceCache">
+            <summary>
+            Embedded resource contents keyed by filename.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerHandler.RegisterRoutes">
+            <summary>
+            Usually called internally, sometimes you may clear the routes during the apps lifecycle, 
+            if you do that call this to bring back mini profiler.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerHandler.System#Web#Routing#IRouteHandler#GetHttpHandler(System.Web.Routing.RequestContext)">
+            <summary>
+            Returns this <see cref="T:StackExchange.Profiling.MiniProfilerHandler"/> to handle <paramref name="requestContext"/>.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerHandler.ProcessRequest(System.Web.HttpContext)">
+            <summary>
+            Returns either includes' <c>css/javascript</c> or results' html.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerHandler.RenderIncludes(StackExchange.Profiling.MiniProfiler,System.Nullable{StackExchange.Profiling.RenderPosition},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
+            <summary>
+            Renders script tag found in "include.partial.html".
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerHandler.Includes(System.Web.HttpContext,System.String)">
+            <summary>
+            Handles rendering static content files.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerHandler.AuthorizeRequest(System.Web.HttpContext,System.Boolean,System.String@)">
+            <summary>
+            Returns true if the current request is allowed to see the profiler response.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerHandler.GetSingleProfilerResult(System.Web.HttpContext)">
+            <summary>
+            Returns either json or full page html of a previous <c>MiniProfiler</c> session, 
+            identified by its <c>"?id=GUID"</c> on the query.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.MiniProfilerHandler.IsReusable">
+            <summary>
+            Gets a value indicating whether to keep things static and reusable.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.SqlFormatters.IAdvancedSqlFormatter">
+            <summary>
+            Takes a <c>SqlTiming</c> and returns a formatted SQL string, for parameter replacement, etc.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.SqlFormatters.ISqlFormatter">
+            <summary>
+            Takes a <c>SqlTiming</c> and returns a formatted SQL string, for parameter replacement, etc.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.ISqlFormatter.FormatSql(System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter})">
+            <summary>
+            Return SQL the way you want it to look on the in the trace. Usually used to format parameters.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.IAdvancedSqlFormatter.FormatSql(System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter},System.Data.IDbCommand)">
+            <summary>
+            Return SQL the way you want it to look on the in the trace. Usually used to format parameters.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.SqlFormatters.SqlFormatterExtensions">
+            <summary>
+            Extensions for ISqlFormatter instances
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.SqlFormatterExtensions.GetFormattedSql(StackExchange.Profiling.SqlFormatters.ISqlFormatter,System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter},System.Data.IDbCommand)">
+            <summary>
+            Format sql using the FormatSql method available in the current <see cref="P:StackExchange.Profiling.MiniProfiler.Settings.SqlFormatter"/>. 
+            </summary>
+            <remarks>It is preferable to use this rather than accessing <see cref="M:StackExchange.Profiling.SqlFormatters.ISqlFormatter.FormatSql(System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter})"/> directly, 
+            as this method will detect whether an <see cref="T:StackExchange.Profiling.SqlFormatters.IAdvancedSqlFormatter"/> is being used, and will access it properly. 
+            This may be removed in a future major version when <see cref="T:StackExchange.Profiling.SqlFormatters.IAdvancedSqlFormatter"/> can be consolidated back
+            into <see cref="T:StackExchange.Profiling.SqlFormatters.ISqlFormatter"/>.
+            </remarks>
+            <returns></returns>
+        </member>
+        <member name="T:StackExchange.Profiling.SqlFormatters.VerboseSqlServerFormatter">
+            <summary>
+            Formats SQL server queries with a DECLARE up top for parameter values
+            </summary>
+            
+        </member>
+        <member name="T:StackExchange.Profiling.SqlFormatters.SqlServerFormatter">
+            <summary>
+            Formats SQL server queries with a DECLARE up top for parameter values
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.ParamTranslator">
+            <summary>
+            Lookup a function for translating a parameter by parameter type
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.DontQuote">
+            <summary>
+            What data types should not be quoted when used in parameters
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.#cctor">
+            <summary>
+            Initialises static members of the <see cref="T:StackExchange.Profiling.SqlFormatters.SqlServerFormatter"/> class.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.FormatSql(System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter})">
+            <summary>
+            Formats the SQL in a SQL-Server friendly way, with DECLARE statements for the parameters up top.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.FormatSql(System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter},System.Data.IDbCommand)">
+            <summary>
+            Formats the SQL in a SQL-Server friendly way, with DECLARE statements for the parameters up top.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.TerminateSqlStatement(System.String)">
+            <summary>
+            This function is necessary to always return the sql statement terminated with a semicolon.
+            Since we're using semicolons, we should also add it to the end.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.GenerateParamText(System.Text.StringBuilder,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter})">
+            <summary>
+            Generate formatter output text for all <paramref name="parameters"/>.
+            </summary>
+            <param name="buffer"><see cref="T:System.Text.StringBuilder"/> to use</param>
+            <param name="parameters">Parameters to evaluate</param>
+            <returns></returns>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.PrepareValue(StackExchange.Profiling.SqlTimingParameter)">
+            <summary>
+            Prepare the parameter value for use in SqlFormatter output
+            </summary>
+            <param name="parameter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.VerboseSqlServerFormatter.#ctor(System.Boolean)">
+            <summary>
+            The constructor
+            </summary>
+            <param name="includeMetaData"></param>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlFormatters.VerboseSqlServerFormatter.FormatSql(System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter},System.Data.IDbCommand)">
+            <summary>
+            Formats the SQL in a SQL-Server friendly way, with DECLARE statements for the parameters up top.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlFormatters.VerboseSqlServerFormatter.IncludeMetaData">
+            <summary>
+            Should meta data relating to the command type, database and transaction be included in sql output
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.SqlTiming">
+            <summary>
+            Profiles a single SQL execution.
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.SqlTiming.MaxByteParameterSize">
+            <summary>
+            Holds the maximum size that will be stored for byte[] parameters
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.#ctor(System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType,StackExchange.Profiling.MiniProfiler)">
+            <summary>
+            Initialises a new instance of the <see cref="T:StackExchange.Profiling.SqlTiming"/> class. 
+            Creates a new <c>SqlTiming</c> to profile 'command'.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.ToString">
+            <summary>
+            Returns a snippet of the SQL command and the duration.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.Equals(System.Object)">
+            <summary>
+            Returns true if Ids match.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.GetHashCode">
+            <summary>
+            Returns hash code of Id.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.ExecutionComplete(System.Boolean)">
+            <summary>
+            Called when command execution is finished to determine this <c>SqlTiming's</c> duration.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.ReaderFetchComplete">
+            <summary>
+            Called when database reader is closed, ending profiling for 
+            <see cref="F:StackExchange.Profiling.Data.SqlExecuteType.Reader"/> <c>SqlTimings</c>.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.GetValue(System.Data.IDataParameter)">
+            <summary>
+            Returns the value of <paramref name="parameter"/> suitable for storage/display.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.AddSpacesToParameters(System.String)">
+            <summary>
+            To help with display, put some space around crowded commas.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTiming.GetCommandParameters(System.Data.IDbCommand)">
+            <summary>
+            Returns better parameter information for <paramref name="command"/>.  Returns null if no parameters are present.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlTiming.StartMilliseconds">
+            <summary>
+            Gets or sets the offset from main <c>MiniProfiler</c> start that this custom command began.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.SqlTimingParameter">
+            <summary>
+            Information about a DbParameter used in the sql statement profiled by SqlTiming.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTimingParameter.Equals(System.Object)">
+            <summary>
+            Returns true if this has the same parent  
+            <see cref="P:StackExchange.Profiling.SqlTimingParameter.Name"/> and <see cref="P:StackExchange.Profiling.SqlTimingParameter.Value"/> as <paramref name="obj"/>.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTimingParameter.GetHashCode">
+            <summary>
+            Returns the XOR of certain properties.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlTimingParameter.ToString">
+            <summary>
+            Returns name and value for debugging.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlTimingParameter.Name">
+            <summary>
+            Parameter name, e.g. "routeName"
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlTimingParameter.Value">
+            <summary>
+            The value submitted to the database.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlTimingParameter.DbType">
+            <summary>
+            System.Data.DbType, e.g. "String", "Bit"
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlTimingParameter.Size">
+            <summary>
+            How large the type is, e.g. for string, size could be 4000
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlTimingParameter.Direction">
+            <summary>
+            System.Data.ParameterDirection: "Input", "Output", "InputOutput", "ReturnValue"
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.SqlTimingParameter.IsNullable">
+            <summary>
+            Gets or sets a value that indicates whether the parameter accepts null values.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.Storage.DatabaseStorageBase">
+            <summary>
+            Understands how to save MiniProfiler results to a MSSQL database, allowing more permanent storage and querying of slow results.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.Storage.IStorage">
+            <summary>
+            Provides saving and loading <see cref="T:StackExchange.Profiling.MiniProfiler"/>s to a storage medium.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.IStorage.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
+            <summary>
+            List the latest profiling results.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.IStorage.Save(StackExchange.Profiling.MiniProfiler)">
+            <summary>
+            Stores <paramref name="profiler"/> under its <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>.
+            </summary>
+            <param name="profiler">The results of a profiling session.</param>
+            <remarks>
+            Should also ensure the profiler is stored as being un-viewed by its profiling <see cref="P:StackExchange.Profiling.MiniProfiler.User"/>.
+            </remarks>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.IStorage.Load(System.Guid)">
+            <summary>
+            Returns a <see cref="T:StackExchange.Profiling.MiniProfiler"/> from storage based on <paramref name="id"/>, 
+            which should map to <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>.
+            </summary>
+            <remarks>
+            Should also update that the resulting profiler has been marked as viewed by its 
+            profiling <see cref="P:StackExchange.Profiling.MiniProfiler.User"/>.
+            </remarks>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.IStorage.SetUnviewed(System.String,System.Guid)">
+            <summary>
+            Sets a particular profiler session so it is considered "un-viewed"  
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.IStorage.SetViewed(System.String,System.Guid)">
+            <summary>
+            Sets a particular profiler session to "viewed"
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.IStorage.GetUnviewedIds(System.String)">
+            <summary>
+            Returns a list of <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>s that haven't been seen by <paramref name="user"/>.
+            </summary>
+            <param name="user">
+            User identified by the current <c>MiniProfiler.Settings.UserProvider</c>
+            </param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Storage.DatabaseStorageBase"/> class. 
+            Returns a new <c>SqlServerDatabaseStorage</c> object that will insert into the database identified by connectionString.
+            </summary>
+            <param name="connectionString">The connection String.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.#ctor(System.Configuration.ConnectionStringSettings)">
+            <summary>
+            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Storage.DatabaseStorageBase"/> class. 
+            Returns a new <c>SqlServerDatabaseStorage</c> object that will insert into the database identified by connection string settings.
+            </summary>
+            <param name="connectionStringSettings">
+            The connection string settings read from ConfigurationManager.ConnectionStrings["connection"]
+            </param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.Save(StackExchange.Profiling.MiniProfiler)">
+            <summary>
+            Saves 'profiler' to a database under its <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>.
+            </summary>
+            <param name="profiler">The profiler.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.Load(System.Guid)">
+            <summary>
+            Returns the MiniProfiler identified by 'id' from the database or null when no MiniProfiler exists under that 'id'.
+            </summary>
+            <param name="id">
+            The id.
+            </param>
+            <returns>the mini profiler</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.SetUnviewed(System.String,System.Guid)">
+            <summary>
+            Sets a particular profiler session so it is considered "un-viewed"  
+            </summary>
+            <param name="user">The user.</param>
+            <param name="id">The id.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.SetViewed(System.String,System.Guid)">
+            <summary>
+            Sets a particular profiler session to "viewed"
+            </summary>
+            <param name="user">The user.</param>
+            <param name="id">The id.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.GetUnviewedIds(System.String)">
+            <summary>
+            Returns a list of <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>s that haven't been seen by <paramref name="user"/>.
+            </summary>
+            <param name="user">
+            User identified by the current <c>MiniProfiler.Settings.UserProvider</c>.
+            </param>
+            <returns>the list of keys for the supplied user</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
+            <summary>
+            Implement a basic list search here
+            </summary>
+            <param name="maxResults">The max number of results.</param>
+            <param name="start">The start.</param>
+            <param name="finish">The finish.</param>
+            <param name="orderBy">order By.</param>
+            <returns>the list of GUID keys</returns>
+        </member>
+        <member name="P:StackExchange.Profiling.Storage.DatabaseStorageBase.ConnectionString">
+            <summary>
+            Gets or sets how we connect to the database used to save/load MiniProfiler results.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.Storage.MultiStorageProvider">
+            <summary>
+            Allow for results to be stored in and retrieved from multiple IStorage stores.
+            When reading Loading a MiniProfiler, will load from the first Store that returns a record for the Guid.
+            When saving, will save in all Stores.
+            </summary>
+            <example>Ideal usage scenario - you want to store requests in Cache and Sql Server, but only want to retrieve from Cache if it is available</example>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.MultiStorageProvider.#ctor(StackExchange.Profiling.Storage.IStorage[])">
+            <summary>
+            Create the <see cref="T:StackExchange.Profiling.Storage.MultiStorageProvider"/> with the given collection of <see cref="T:StackExchange.Profiling.Storage.IStorage"/> objects (order is important!)
+            </summary>
+            <param name="stores">The <see cref="T:StackExchange.Profiling.Storage.IStorage"/> objects to use for storage (order is important!)</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.MultiStorageProvider.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
+            <summary>
+            Run the List command on the first Store from <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/> that returns a result with any values. 
+            Will NOT return a superset of results from all <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/>.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.MultiStorageProvider.Save(StackExchange.Profiling.MiniProfiler)">
+            <summary>
+            Stores <paramref name="profiler"/> under its <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/> in all of the <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/>.
+            </summary>
+            <param name="profiler">The results of a profiling session.</param>
+            <remarks>
+            Should also ensure the profiler is stored as being un-viewed by its profiling <see cref="P:StackExchange.Profiling.MiniProfiler.User"/>.
+            </remarks>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.MultiStorageProvider.Load(System.Guid)">
+            <summary>
+            Returns a <see cref="T:StackExchange.Profiling.MiniProfiler"/> from storage based on <paramref name="id"/>, 
+            which should map to <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>. Will check in all of the <see cref="T:StackExchange.Profiling.Storage.IStorage"/>
+            classes in <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/>, and will return the first <see cref="T:StackExchange.Profiling.MiniProfiler"/> that it finds.
+            </summary>
+            <remarks>
+            Should also update that the resulting profiler has been marked as viewed by its 
+            profiling <see cref="P:StackExchange.Profiling.MiniProfiler.User"/>.
+            </remarks>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.MultiStorageProvider.SetUnviewed(System.String,System.Guid)">
+            <summary>
+            Sets a particular profiler session so it is considered "un-viewed".
+            Will set this to all <see cref="T:StackExchange.Profiling.Storage.IStorage"/> items in <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/>
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.MultiStorageProvider.SetViewed(System.String,System.Guid)">
+            <summary>
+            Sets a particular profiler session to "viewed".
+            Will set this to all <see cref="T:StackExchange.Profiling.Storage.IStorage"/> items in <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/>
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.MultiStorageProvider.GetUnviewedIds(System.String)">
+            <summary>
+            Runs <see cref="M:StackExchange.Profiling.Storage.IStorage.GetUnviewedIds(System.String)"/> on each <see cref="T:StackExchange.Profiling.Storage.IStorage"/> object in <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/> and returns the Union of results.
+            Will run on multiple stores in parallel if <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.AllowParallelOps"/> = true.
+            </summary>
+            <param name="user"></param>
+            <returns></returns>
+        </member>
+        <member name="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores">
+            <summary>
+            The stores that are exposed by this <see cref="T:StackExchange.Profiling.Storage.MultiStorageProvider"/>
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.Storage.MultiStorageProvider.AllowParallelOps">
+            <summary>
+            Should operations use Parallel.ForEach when it makes sense to do so (all save operations, and data retrieval where all items in <see cref="P:StackExchange.Profiling.Storage.MultiStorageProvider.Stores"/> are hit? 
+            If False, all operations will run synchronously, in order. Defaults to False.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.Storage.SqlServerStorage">
+            <summary>
+            Understands how to store a <see cref="T:StackExchange.Profiling.MiniProfiler"/> to a MSSQL database.
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.Storage.SqlServerStorage.SqlStatements">
+            <summary>
+            Load the SQL statements (using Dapper Multiple Results)
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:StackExchange.Profiling.Storage.SqlServerStorage"/> class with the specified connection string.
+            </summary>
+            <param name="connectionString">
+            The connection string to use.
+            </param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.#ctor(System.Configuration.ConnectionStringSettings)">
+            <summary>
+            Initializes a new instance of the <see cref="T:StackExchange.Profiling.Storage.SqlServerStorage"/> class with the specified connection string settings.
+            </summary>
+            <param name="connectionStringSettings">
+            The connection string settings read from ConfigurationManager.ConnectionStrings["connection"]
+            </param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.Save(StackExchange.Profiling.MiniProfiler)">
+            <summary>
+            Stores to <c>dbo.MiniProfilers</c> under its <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>;
+            </summary>
+            <param name="profiler">The Mini Profiler</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.Load(System.Guid)">
+            <summary>
+            Loads the <c>MiniProfiler</c> identified by 'id' from the database.
+            </summary>
+            <param name="id">The id.</param>
+            <returns>the mini profiler.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SetUnviewed(System.String,System.Guid)">
+            <summary>
+            Sets the session to un-viewed 
+            </summary>
+            <param name="user">The user.</param>
+            <param name="id">The id.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SetViewed(System.String,System.Guid)">
+            <summary>
+            sets the session to viewed
+            </summary>
+            <param name="user">The user.</param>
+            <param name="id">The id.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.GetUnviewedIds(System.String)">
+            <summary>
+            Returns a list of <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>s that haven't been seen by <paramref name="user"/>.
+            </summary>
+            <param name="user">User identified by the current UserProvider"/&gt;.</param>
+            <returns>the list of keys.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
+            <summary>
+            List the Results.
+            </summary>
+            <param name="maxResults">The max results.</param>
+            <param name="start">The start.</param>
+            <param name="finish">The finish.</param>
+            <param name="orderBy">order by.</param>
+            <returns>the list of key values.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.LoadProfilerRecord(System.Data.Common.DbConnection,System.Object)">
+            <summary>
+            Load individual MiniProfiler
+            </summary>
+            <param name="connection">The connection.</param>
+            <param name="keyParameter">The id Parameter.</param>
+            <returns>Related MiniProfiler object</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.PopulateChildTimings(StackExchange.Profiling.Timing,System.Linq.ILookup{System.Guid,StackExchange.Profiling.Timing})">
+            <summary>
+            Build the subtree of <see cref="T:StackExchange.Profiling.Timing"/> objects with <paramref name="parent"/> at the top.
+            Used recursively.
+            </summary>
+            <param name="parent">Parent <see cref="T:StackExchange.Profiling.Timing"/> to be evaluated.</param>
+            <param name="timingsLookupByParent">Key: parent timing Id; Value: collection of all <see cref="T:StackExchange.Profiling.Timing"/> objects under the given parent.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.GetConnection">
+            <summary>
+            Returns a connection to Sql Server.
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.GetOpenConnection">
+            <summary>
+            Returns a DbConnection already opened for execution.
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.Storage.SqlServerStorage.TableCreationScript">
+            <summary>
+            Creates needed tables. Run this once on your database.
+            </summary>
+            <remarks>
+            Works in SQL server and <c>sqlite</c> (with documented removals).
+            </remarks>
+        </member>
         <member name="T:StackExchange.Profiling.Suppression">
             <summary>
             An individual suppression block that deactivates profiling temporarily
@@ -163,41 +793,33 @@
             Initialises a new instance of the <see cref="T:StackExchange.Profiling.Suppression"/> class. 
             Creates a new Suppression to deactive profiling while alive
             </summary>
-            <param name="profiler">
-            The profiler.
-            </param>
-        </member>
-        <member name="M:StackExchange.Profiling.Suppression.System#IDisposable#Dispose">
-            <summary>
-            dispose the profiler.
-            </summary>
         </member>
         <member name="P:StackExchange.Profiling.Suppression.Profiler">
             <summary>
             Gets a reference to the containing profiler, allowing this Suppression to affect profiler activity.
             </summary>
         </member>
-        <member name="T:StackExchange.Profiling.Data.ExecuteType">
+        <member name="T:StackExchange.Profiling.Data.SqlExecuteType">
             <summary>
             Categories of SQL statements.
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.Data.ExecuteType.None">
+        <member name="F:StackExchange.Profiling.Data.SqlExecuteType.None">
             <summary>
             Unknown type
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.Data.ExecuteType.NonQuery">
+        <member name="F:StackExchange.Profiling.Data.SqlExecuteType.NonQuery">
             <summary>
             DML statements that alter database state, e.g. INSERT, UPDATE
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.Data.ExecuteType.Scalar">
+        <member name="F:StackExchange.Profiling.Data.SqlExecuteType.Scalar">
             <summary>
             Statements that return a single record
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.Data.ExecuteType.Reader">
+        <member name="F:StackExchange.Profiling.Data.SqlExecuteType.Reader">
             <summary>
             Statements that iterate over a result set
             </summary>
@@ -207,7 +829,7 @@
             A call back for <c>ProfiledDbConnection</c> and family
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.Data.IDbProfiler.ExecuteStart(System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType)">
+        <member name="M:StackExchange.Profiling.Data.IDbProfiler.ExecuteStart(System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType)">
             <summary>
             Called when a command starts executing
             </summary>
@@ -218,7 +840,7 @@
             The execute Type.
             </param>
         </member>
-        <member name="M:StackExchange.Profiling.Data.IDbProfiler.ExecuteFinish(System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType,System.Data.Common.DbDataReader)">
+        <member name="M:StackExchange.Profiling.Data.IDbProfiler.ExecuteFinish(System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType,System.Data.Common.DbDataReader)">
             <summary>
             Called when a reader finishes executing
             </summary>
@@ -232,7 +854,7 @@
             </summary>
             <param name="reader">The reader.</param>
         </member>
-        <member name="M:StackExchange.Profiling.Data.IDbProfiler.OnError(System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType,System.Exception)">
+        <member name="M:StackExchange.Profiling.Data.IDbProfiler.OnError(System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType,System.Exception)">
             <summary>
             Called when an error happens during execution of a command 
             </summary>
@@ -321,14 +943,13 @@
             </summary>
             <returns>the scalar value.</returns>
         </member>
-        <member name="M:StackExchange.Profiling.Data.SimpleProfiledCommand.ProfileWith``1(StackExchange.Profiling.Data.ExecuteType,System.Func{``0})">
+        <member name="M:StackExchange.Profiling.Data.SimpleProfiledCommand.ProfileWith``1(StackExchange.Profiling.Data.SqlExecuteType,System.Func{``0})">
             <summary>
             profile with results.
             </summary>
             <param name="type">The type of execution.</param>
             <param name="func">a function to execute against against the profile result</param>
             <typeparam name="TResult">the type of result to return.</typeparam>
-            <returns>The <see cref="!:TResult"/>return the profiled result.</returns>
         </member>
         <member name="M:StackExchange.Profiling.Data.SimpleProfiledCommand.Dispose">
             <summary>
@@ -864,6 +1485,20 @@
             The number of rows successfully added to or refreshed in the <see cref="T:System.Data.DataSet"/>. This does not include rows affected by statements that do not return rows.
             </returns>
         </member>
+        <member name="M:StackExchange.Profiling.Data.ProfiledDbDataAdapter.Fill(System.Data.DataTable)">
+            <summary>
+            Adds or refreshes rows in a specified range in the <see cref="T:System.Data.DataTable"/>. 
+            </summary>
+            <remarks>
+            This function will only work if you are using an <see cref="T:IDbDataAdapter"/> implementation that inherits from <see cref="T:DbDataAdapter"/>. 
+            This includes <see cref="T:SqlDataAdapter"/> and most other similar classes. 
+            </remarks> 
+            <returns>
+            The number of rows successfully added to or refreshed in the <see cref="T:System.Data.DataSet"/>. This does not include rows affected by statements that do not return rows.
+            </returns>
+            <param name="dataTable">The <see cref="T:System.Data.DataTable"/> to use for table mapping.</param>
+            <exception cref="T:System.InvalidOperationException">The source table is invalid or being used with an <see cref="T:IDbDataAdapter"/> implementation that does not inherit from <see cref="T:DbDataAdapter"/>.</exception>
+        </member>
         <member name="M:StackExchange.Profiling.Data.ProfiledDbDataAdapter.GetFillParameters">
             <summary>
             Gets the parameters set by the user when executing an SQL SELECT statement.
@@ -940,42 +1575,23 @@
             Every provider factory must have an Instance public field
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.Data.ProfiledDbProviderFactory._profiler">
-            <summary>
-            The profiler.
-            </summary>
-        </member>
         <member name="F:StackExchange.Profiling.Data.ProfiledDbProviderFactory._tail">
             <summary>
             The tail.
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.#ctor">
+        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.#ctor(System.Data.Common.DbProviderFactory)">
             <summary>
-            Prevents a default instance of the <see cref="T:StackExchange.Profiling.Data.ProfiledDbProviderFactory"/> class from being created. 
-            Used for database provider APIS internally 
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.InitProfiledDbProviderFactory(StackExchange.Profiling.Data.IDbProfiler,System.Data.Common.DbProviderFactory)">
-            <summary>
-            Allow to re-initialise the provider factory.
-            </summary>
-            <param name="profiler">The profiler.</param>
-            <param name="tail">The tail.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.#ctor(StackExchange.Profiling.Data.IDbProfiler,System.Data.Common.DbProviderFactory)">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Data.ProfiledDbProviderFactory"/> class. 
+            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Data.ProfiledDbProviderFactory"/> class.
             proxy provider factory
             </summary>
-            <param name="profiler">The profiler.</param>
             <param name="tail">The tail.</param>
         </member>
-        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateDataSourceEnumerator">
+        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.#ctor">
             <summary>
-            create the data source enumerator.
+            Prevents a default instance of the <see cref="T:StackExchange.Profiling.Data.ProfiledDbProviderFactory"/> class from being created.
+            Used for database provider APIS internally
             </summary>
-            <returns>The <see cref="T:System.Data.Common.DbDataSourceEnumerator"/>.</returns>
         </member>
         <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateCommand">
             <summary>
@@ -983,17 +1599,19 @@
             </summary>
             <returns>The <see cref="T:System.Data.Common.DbCommand"/>.</returns>
         </member>
+        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateCommandBuilder">
+            <summary>
+            create the command builder.
+            </summary>
+            <returns>
+            The <see cref="T:System.Data.Common.DbCommandBuilder"/>.
+            </returns>
+        </member>
         <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateConnection">
             <summary>
             create the connection.
             </summary>
             <returns>The <see cref="T:System.Data.Common.DbConnection"/>.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateParameter">
-            <summary>
-            create the parameter.
-            </summary>
-            <returns>The <see cref="T:System.Data.Common.DbParameter"/>.</returns>
         </member>
         <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateConnectionStringBuilder">
             <summary>
@@ -1001,14 +1619,6 @@
             </summary>
             <returns>
             The <see cref="T:System.Data.Common.DbConnectionStringBuilder"/>.
-            </returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateCommandBuilder">
-            <summary>
-            create the command builder.
-            </summary>
-            <returns>
-            The <see cref="T:System.Data.Common.DbCommandBuilder"/>.
             </returns>
         </member>
         <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateDataAdapter">
@@ -1019,12 +1629,30 @@
             The <see cref="T:System.Data.Common.DbDataAdapter"/>.
             </returns>
         </member>
+        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateDataSourceEnumerator">
+            <summary>
+            create the data source enumerator.
+            </summary>
+            <returns>The <see cref="T:System.Data.Common.DbDataSourceEnumerator"/>.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreateParameter">
+            <summary>
+            create the parameter.
+            </summary>
+            <returns>The <see cref="T:System.Data.Common.DbParameter"/>.</returns>
+        </member>
         <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CreatePermission(System.Security.Permissions.PermissionState)">
             <summary>
             create the permission.
             </summary>
             <param name="state">The state.</param>
             <returns>The <see cref="T:System.Security.CodeAccessPermission"/>.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Data.ProfiledDbProviderFactory.InitProfiledDbProviderFactory(System.Data.Common.DbProviderFactory)">
+            <summary>
+            Allow to re-initialise the provider factory.
+            </summary>
+            <param name="tail">The tail.</param>
         </member>
         <member name="P:StackExchange.Profiling.Data.ProfiledDbProviderFactory.CanCreateDataSourceEnumerator">
             <summary>
@@ -1049,15 +1677,8 @@
         </member>
         <member name="M:StackExchange.Profiling.Data.SimpleProfiledTransaction.#ctor(System.Data.IDbTransaction,StackExchange.Profiling.Data.SimpleProfiledConnection)">
             <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Data.SimpleProfiledTransaction"/> class. 
             Creates a new wrapped <see cref="T:System.Data.IDbTransaction"/>
             </summary>
-            <param name="transaction">
-            The transaction to wrap
-            </param>
-            <param name="connection">
-            The wrapped connection this transaction is attached to
-            </param>
         </member>
         <member name="M:StackExchange.Profiling.Data.SimpleProfiledTransaction.Commit">
             <summary>
@@ -1073,12 +1694,6 @@
             <summary>
             dispose the command / connection and profiler.
             </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.Data.SimpleProfiledTransaction.Dispose(System.Boolean)">
-            <summary>
-            dispose the command / connection and profiler.
-            </summary>
-            <param name="disposing">false if the dispose is called from a <c>finalizer</c></param>
         </member>
         <member name="P:StackExchange.Profiling.Data.SimpleProfiledTransaction.WrappedTransaction">
             <summary>
@@ -1104,48 +1719,34 @@
             <summary>
             Answers true if this String is either null or empty.
             </summary>
-            <param name="value">
-            The string value.
-            </param>
-            <returns>true if the string is null or white space</returns>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.HasValue(System.String)">
             <summary>
             Answers true if this String is neither null or empty.
             </summary>
-            <param name="value">The string value.</param>
-            <returns>The <see cref="T:System.Boolean"/>.</returns>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.Truncate(System.String,System.Int32)">
             <summary>
-            truncate the string.
+            Chops off a string at the specified length and accounts for smaller length
             </summary>
-            <param name="s">The string.</param>
-            <param name="maxLength">The max length.</param>
-            <returns>The <see cref="T:System.String"/>.</returns>
+            <param name="s"></param>
+            <param name="maxLength"></param>
+            <returns></returns>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.EnsureTrailingSlash(System.String)">
             <summary>
             Removes trailing / characters from a path and leaves just one
             </summary>
-            <param name="input">
-            The input.
-            </param>
-            <returns>the input string with a trailing slash</returns>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.RemoveLeadingSlash(System.String)">
             <summary>
             Removes any leading / characters from a path
             </summary>
-            <param name="input">The input string.</param>
-            <returns>the input string without a leading slash</returns>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.RemoveTrailingSlash(System.String)">
             <summary>
             Removes any leading / characters from a path
             </summary>
-            <param name="input">The input.</param>
-            <returns>the input string without a trailing slash</returns>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.ToJson(System.Object)">
             <summary>
@@ -1153,6 +1754,13 @@
             </summary>
             <param name="o">the instance to serialise</param>
             <returns>the resulting JSON object as a string</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.FromJson``1(System.String)">
+            <summary>
+            Deserializes <paramref name="s"/> to an object of type <typeparamref name="T"/>.
+            </summary>
+            <param name="s">The string to deserialize</param>
+            <returns>The object resulting from the given string</returns>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.ExtensionMethods.ToJs(System.Boolean)">
             <summary>
@@ -1871,6 +2479,11 @@
             Gets the records affected.
             </summary>
         </member>
+        <member name="P:StackExchange.Profiling.Data.ProfiledDbDataReader.WrappedReader">
+            <summary>
+            The <see cref="T:System.Data.Common.DbDataReader"/> that is being used
+            </summary>
+        </member>
         <member name="P:StackExchange.Profiling.Data.ProfiledDbDataReader.Item(System.String)">
             <summary>
             The 
@@ -2012,6 +2625,90 @@
         <member name="P:StackExchange.Profiling.Helpers.StopwatchWrapper.IsRunning">
             <summary>
             Gets a value indicating whether is running.
+            </summary>
+        </member>
+        <member name="T:StackExchange.Profiling.Helpers.Dapper.SqlBuilder">
+            <summary>
+            Help to build out sql
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.AddTemplate(System.String,System.Object)">
+            <summary>
+            Add a template to the SqlBuilder
+            </summary>
+            <param name="sql"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.LeftJoin(System.String,System.Object)">
+            <summary>
+            Add a Left Join
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Where(System.String,System.Object)">
+            <summary>
+            Add a Where Clause
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.OrderBy(System.String,System.Object)">
+            <summary>
+            Add an OrderBy Clause
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Select(System.String,System.Object)">
+            <summary>
+            Add the Select section
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.AddParameters(System.Object)">
+            <summary>
+            Add a parameters to the query
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Join(System.String,System.Object)">
+            <summary>
+            Add a Join statement
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.GroupBy(System.String,System.Object)">
+            <summary>
+            Add a Group By section
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Having(System.String,System.Object)">
+            <summary>
+            Add a Having section
+            </summary>
+            <returns>itself</returns>
+        </member>
+        <member name="T:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Template">
+            <summary>
+            Template helper class for SqlBuilder
+            </summary>
+        </member>
+        <member name="M:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Template.#ctor(StackExchange.Profiling.Helpers.Dapper.SqlBuilder,System.String,System.Object)">
+            <summary>
+            Template constructor
+            </summary>
+            <param name="builder"></param>
+            <param name="sql"></param>
+            <param name="parameters"></param>
+        </member>
+        <member name="P:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Template.RawSql">
+            <summary>
+            Raw Sql returns by the <see cref="T:StackExchange.Profiling.Helpers.Dapper.SqlBuilder"/>
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.Helpers.Dapper.SqlBuilder.Template.Parameters">
+            <summary>
+            Parameters being used
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.Helpers.Dapper.SqlMapper">
@@ -2423,26 +3120,14 @@
         </member>
         <member name="T:StackExchange.Profiling.Helpers.StackTraceSnippet">
             <summary>
-            Gets part of a stack trace containing only methods we care about.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.Helpers.StackTraceSnippet.AspNetEntryPointMethodName">
-            <summary>
-            The asp net entry point method name.
+                Gets part of a stack trace containing only methods we care about.
             </summary>
         </member>
         <member name="M:StackExchange.Profiling.Helpers.StackTraceSnippet.Get">
             <summary>
-            Gets the current formatted and filtered stack trace.
+                Gets the current formatted and filtered stack trace.
             </summary>
             <returns>Space separated list of methods</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Helpers.StackTraceSnippet.ShouldExcludeType(System.Reflection.MethodBase)">
-            <summary>
-            should the type be excluded.
-            </summary>
-            <param name="method">The method.</param>
-            <returns>The <see cref="T:System.Boolean"/>.</returns>
         </member>
         <member name="T:StackExchange.Profiling.Helpers.HaackFormatter">
             <summary>
@@ -2572,6 +3257,10 @@
         <member name="M:StackExchange.Profiling.IpAddressIdentity.GetUser(System.Web.HttpRequest)">
             <summary>
             Returns the paramter HttpRequest's client ip address.
+            We combine both the REMOTE_ADDR header (which is the connecting device's IP address),
+            plus the HTTP_X_FORWARDED_FOR header if present (which is set by some proxy
+            servers and load balancers). This allows us to have a unique per-user view, even
+            when behind a proxy or load balancer.
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.MiniProfiler">
@@ -2580,29 +3269,22 @@
             </summary>
             <remarks>Totally baller.</remarks>
         </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.GetInProgressCommands">
+        <member name="M:StackExchange.Profiling.MiniProfiler.#ctor">
             <summary>
-            Returns all currently open commands on this connection
+            Initialises a new instance of the <see cref="T:StackExchange.Profiling.MiniProfiler"/> class. 
+            Obsolete - used for serialization.
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.GetSqlTimings">
+        <member name="M:StackExchange.Profiling.MiniProfiler.#ctor(System.String)">
             <summary>
-            Returns all <see cref="T:StackExchange.Profiling.SqlTiming"/> results contained in all child <see cref="T:StackExchange.Profiling.Timing"/> steps.
+            Initialises a new instance of the <see cref="T:StackExchange.Profiling.MiniProfiler"/> class.  Creates and starts a new MiniProfiler 
+            for the root <paramref name="url"/>.
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.MiniProfiler._sqlExecutionCounts">
+        <member name="M:StackExchange.Profiling.MiniProfiler.#ctor(System.String,StackExchange.Profiling.ProfileLevel)">
             <summary>
-            Contains any sql statements that are executed, along with how many times those statements are executed.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.AddSqlTiming(StackExchange.Profiling.SqlTiming)">
-            <summary>
-            Adds <paramref name="stats"/> to the current <see cref="T:StackExchange.Profiling.Timing"/>.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.GetExecutedCount(StackExchange.Profiling.Data.ExecuteType)">
-            <summary>
-            Returns the number of sql statements of <paramref name="type"/> that were executed in all <see cref="T:StackExchange.Profiling.Timing"/>s.
+            Initialises a new instance of the <see cref="T:StackExchange.Profiling.MiniProfiler"/> class.  Creates and starts a new MiniProfiler 
+            for the root <paramref name="url"/>, filtering <see cref="T:StackExchange.Profiling.Timing"/> steps to <paramref name="level"/>.
             </summary>
         </member>
         <member name="F:StackExchange.Profiling.MiniProfiler._sw">
@@ -2616,31 +3298,32 @@
             The root.
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.MiniProfiler"/> class. 
-            Obsolete - used for serialization.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.#ctor(System.String,StackExchange.Profiling.ProfileLevel)">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.MiniProfiler"/> class. 
-            Creates and starts a new MiniProfiler for the root <paramref name="url"/>, filtering <see cref="T:StackExchange.Profiling.Timing"/> steps to <paramref name="level"/>.
-            </summary>
-            <param name="url">
-            The URL.
-            </param>
-            <param name="level">
-            The level.
-            </param>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.Start(StackExchange.Profiling.ProfileLevel)">
+        <member name="M:StackExchange.Profiling.MiniProfiler.Start">
             <summary>
             Starts a new MiniProfiler based on the current <see cref="T:StackExchange.Profiling.IProfilerProvider"/>. This new profiler can be accessed by
-            <see cref="P:StackExchange.Profiling.MiniProfiler.Current"/>
+            <see cref="P:StackExchange.Profiling.MiniProfiler.Current"/>.
             </summary>
-            <param name="level">The level.</param>
-            <returns>the mini profiler.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfiler.Start(System.String)">
+            <summary>
+            Starts a new MiniProfiler based on the current <see cref="T:StackExchange.Profiling.IProfilerProvider"/>. This new profiler can be accessed by
+            <see cref="P:StackExchange.Profiling.MiniProfiler.Current"/>.
+            </summary>
+            <param name="sessionName">
+            Allows explicit naming of the new profiling session; when null, an appropriate default will be used, e.g. for
+            a web request, the url will be used for the overall session name.
+            </param>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfiler.Start(StackExchange.Profiling.ProfileLevel,System.String)">
+            <summary>
+            Starts a new MiniProfiler based on the current <see cref="T:StackExchange.Profiling.IProfilerProvider"/>. This new profiler can be accessed by
+            <see cref="P:StackExchange.Profiling.MiniProfiler.Current"/>.
+            </summary>
+            <param name="level">Profiling level. Default to Info.</param>
+            <param name="sessionName">
+            Allows explicit naming of the new profiling session; when null, an appropriate default will be used, e.g. for
+            a web request, the url will be used for the overall session name.
+            </param>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.Stop(System.Boolean)">
             <summary>
@@ -2651,34 +3334,37 @@
             be prematurely stopped and discarded. Useful for when a specific route does not need to be profiled.
             </param>
         </member>
+        <member name="M:StackExchange.Profiling.MiniProfiler.StepStatic(System.String)">
+            <summary>
+            Returns an <see cref="T:System.IDisposable"/> that will time the code between its creation and disposal. Use this method when you
+            do not wish to include the StackExchange.Profiling namespace for the <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String)"/> extension method.
+            </summary>
+            <param name="name">A descriptive name for the code that is encapsulated by the resulting IDisposable's lifetime.</param>
+            <returns>the static step.</returns>
+        </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.StepStatic(System.String,StackExchange.Profiling.ProfileLevel)">
             <summary>
             Returns an <see cref="T:System.IDisposable"/> that will time the code between its creation and disposal. Use this method when you
-            do not wish to include the StackExchange.Profiling namespace for the <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String,StackExchange.Profiling.ProfileLevel)"/> extension method.
+            do not wish to include the StackExchange.Profiling namespace for the <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String)"/> extension method.
             </summary>
             <param name="name">A descriptive name for the code that is encapsulated by the resulting IDisposable's lifetime.</param>
-            <param name="level">This step's visibility level; allows filtering when <see cref="M:StackExchange.Profiling.MiniProfiler.Start(StackExchange.Profiling.ProfileLevel)"/> is called.</param>
+            <param name="level">This step's visibility level; allows filtering when <see cref="M:StackExchange.Profiling.MiniProfiler.Start(System.String)"/> is called.</param>
             <returns>the static step.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.ToJson">
             <summary>
             Renders the current <see cref="T:StackExchange.Profiling.MiniProfiler"/> to JSON.
             </summary>
-            <returns>The <see cref="T:System.String"/>.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.ToJson(StackExchange.Profiling.MiniProfiler)">
             <summary>
             Renders the parameter <see cref="T:StackExchange.Profiling.MiniProfiler"/> to JSON.
             </summary>
-            <param name="profiler">The profiler.</param>
-            <returns>a string containing the JSON result.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.FromJson(System.String)">
             <summary>
-            <c>Deserializes</c> the JSON string parameter to a <see cref="T:StackExchange.Profiling.MiniProfiler"/>.
+            Deserializes the JSON string parameter to a <see cref="T:StackExchange.Profiling.MiniProfiler"/>.
             </summary>
-            <param name="json">The JSON string.</param>
-            <returns>the mini profiler</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.RenderIncludes(System.Nullable{StackExchange.Profiling.RenderPosition},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Boolean,System.Nullable{System.Boolean})">
             <summary>
@@ -2689,8 +3375,11 @@
             <param name="showTimeWithChildren">Whether to show time the time with children column by default (defaults to false)</param>
             <param name="maxTracesToShow">The maximum number of trace popups to show before removing the oldest (defaults to 15)</param>
             <param name="showControls">when true, shows buttons to minimize and clear MiniProfiler results</param>
-            <param name="useExistingjQuery">Whether MiniProfiler should attempt to load its own version of jQuery, or rely on a version previously loaded on the page</param>
+            <param name="useExistingjQuery">
+            Should MiniProfiler attempt to load its own version of jQuery, or rely on a version previously loaded on the page?
+            </param>
             <param name="samplingOnly">The sampling Only.</param>
+            <param name="startHidden">Should the profiler start as hidden. Default to null.</param>
             <returns>Script and link elements normally; an empty string when there is no active profiling session.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.ToString">
@@ -2703,105 +3392,40 @@
             <summary>
             Returns true if Ids match.
             </summary>
-            <param name="rValue">The rValue.</param>
-            <returns>true if the profilers are equal.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.GetHashCode">
             <summary>
             Returns hash code of Id.
             </summary>
-            <returns>an integer containing the hash code.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.GetTimingHierarchy">
             <summary>
             Walks the <see cref="T:StackExchange.Profiling.Timing"/> hierarchy contained in this profiler, starting with <see cref="P:StackExchange.Profiling.MiniProfiler.Root"/>, and returns each Timing found.
             </summary>
-            <returns>the set of timings.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.Clone">
             <summary>
-            Create a DEEP clone of this object
+            Create a DEEP clone of this MiniProfiler.
             </summary>
-            <returns>the mini profiler.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.StepImpl(System.String,StackExchange.Profiling.ProfileLevel)">
-            <summary>
-            The step implementation.
-            </summary>
-            <param name="name">The name.</param>
-            <param name="level">The level.</param>
-            <returns>the step.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.IgnoreImpl">
-            <summary>
-            The ignore implementation.
-            </summary>
-            <returns>the step.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.StopImpl">
-            <summary>
-            The stop implementation
-            </summary>
-            <returns>true if the profile is stopped.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfiler.AddDataImpl(System.String,System.String)">
-            <summary>
-            add the data implementation.
-            </summary>
-            <param name="key">The key.</param>
-            <param name="value">The value.</param>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.GetRoundedMilliseconds(System.Int64)">
             <summary>
-            Returns milliseconds based on Stopwatch's Frequency.
+            Returns milliseconds based on Stopwatch's Frequency, rounded to one decimal place.
             </summary>
-            <param name="stopwatchElapsedTicks">The stopwatch Elapsed Ticks.</param>
-            <returns>a decimal containing the milliseconds</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfiler.GetDurationMilliseconds(System.Int64)">
+            <summary>
+            Returns how many milliseconds have elapsed since <paramref name="startTicks"/> was recorded.
+            </summary>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfiler.OnDeserialized(System.Runtime.Serialization.StreamingContext)">
             <summary>
-            The on <c>deserialized</c> event.
+            Called immediately after deserialization.
             </summary>
-            <param name="context">The context.</param>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.SqlProfiler">
             <summary>
             Contains information about queries executed during this profiling session.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.DurationMillisecondsInSql">
-            <summary>
-            Milliseconds, to one decimal place, that this MiniProfiler was executing sql.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.HasSqlTimings">
-            <summary>
-            Returns true when we have profiled queries.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.HasDuplicateSqlTimings">
-            <summary>
-            Returns true when any child Timings have duplicate queries.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.ExecutedReaders">
-            <summary>
-            How many sql data readers were executed in all <see cref="T:StackExchange.Profiling.Timing"/> steps.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.ExecutedScalars">
-            <summary>
-            How many sql scalar queries were executed in all <see cref="T:StackExchange.Profiling.Timing"/> steps.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.ExecutedNonQueries">
-            <summary>
-            How many sql non-query statements were executed in all <see cref="T:StackExchange.Profiling.Timing"/> steps.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.Current">
-            <summary>
-            Gets the currently running MiniProfiler for the current HttpContext; null if no MiniProfiler was <see cref="M:StackExchange.Profiling.MiniProfiler.Start(StackExchange.Profiling.ProfileLevel)"/>ed.
             </summary>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Id">
@@ -2817,7 +3441,12 @@
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Started">
             <summary>
-            Gets or sets when this profiler was instantiated.
+            Gets or sets when this profiler was instantiated, in UTC time.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.DurationMilliseconds">
+            <summary>
+            Gets the milliseconds, to one decimal place, that this MiniProfiler ran.
             </summary>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.MachineName">
@@ -2825,10 +3454,18 @@
             Gets or sets where this profiler was run.
             </summary>
         </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.Level">
+        <member name="P:StackExchange.Profiling.MiniProfiler.CustomLinks">
             <summary>
-            Gets or sets whether or now filtering is allowed of <see cref="T:StackExchange.Profiling.Timing"/> steps based on what <see cref="T:StackExchange.Profiling.ProfileLevel"/> 
-            the steps are created with.
+            Keys are names, values are URLs, allowing additional links to be added to a profiler result, e.g. perhaps a deeper
+            diagnostic page for the current request.
+            </summary>
+            <remarks>
+            Use <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.AddCustomLink(StackExchange.Profiling.MiniProfiler,System.String,System.String)"/> to easily add a name/url pair to this dictionary.
+            </remarks>
+        </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.CustomLinksJson">
+            <summary>
+            Json used to store Custom Links. Do not touch.
             </summary>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Root">
@@ -2838,19 +3475,32 @@
             All other <see cref="T:StackExchange.Profiling.Timing"/>s will be children of this one.
             </summary>
         </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.RootTimingId">
+            <summary>
+            Id of Root Timing. Used for Sql Storage purposes.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.ClientTimings">
+            <summary>
+            Gets or sets timings collected from the client
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.ClientTimingsRedirectCount">
+            <summary>
+            RedirectCount in ClientTimings. Used for sql storage.
+            </summary>
+        </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.User">
             <summary>
-            Gets or sets a string identifying the user/client that is profiling this request. Set <c>UserProvider</c>"/&gt;
-            with an <see cref="T:StackExchange.Profiling.IUserProvider"/>-implementing class to provide a custom value.
+            Gets or sets a string identifying the user/client that is profiling this request.
             </summary>
             <remarks>
-            If this is not set manually at some point, the <c>UserProvider</c>"/&gt; implementation will be used;
+            If this is not set manually at some point, the <see cref="T:StackExchange.Profiling.IUserProvider"/> implementation will be used;
             by default, this will be the current request's IP address.
             </remarks>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.HasUserViewed">
             <summary>
-            Gets or sets a value indicating whether the profile has been viewed.
             Returns true when this MiniProfiler has been viewed by the <see cref="P:StackExchange.Profiling.MiniProfiler.User"/> that recorded it.
             </summary>
             <remarks>
@@ -2858,30 +3508,10 @@
             will keep a list of all profilers that haven't been fetched down.
             </remarks>
         </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.ClientTimings">
+        <member name="P:StackExchange.Profiling.MiniProfiler.Level">
             <summary>
-            Gets or sets timings collected from the client
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.DurationMilliseconds">
-            <summary>
-            Gets the milliseconds, to one decimal place, that this MiniProfiler ran.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.HasTrivialTimings">
-            <summary>
-            Gets a value indicating whether this profile or it's children are trivial timings.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.HasAllTrivialTimings">
-            <summary>
-            Gets a value indicating whether this profile and it's children are all trivial timings.
-            Returns true when all child <see cref="T:StackExchange.Profiling.Timing"/>s are <see cref="P:StackExchange.Profiling.Timing.IsTrivial"/>.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MiniProfiler.TrivialDurationThresholdMilliseconds">
-            <summary>
-            Gets any Timing step with a duration less than or equal to this will be hidden by default in the UI; defaults to 2.0 ms.
+            Gets or sets whether or not filtering is allowed of <see cref="T:StackExchange.Profiling.Timing"/> steps based on what <see cref="T:StackExchange.Profiling.ProfileLevel"/> 
+            the steps are created with.
             </summary>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Head">
@@ -2898,6 +3528,18 @@
             <summary>
             Gets the timer, for unit testing, returns the timer.
             </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.Current">
+            <summary>
+            Gets the currently running MiniProfiler for the current HttpContext; null if no MiniProfiler was <see cref="M:StackExchange.Profiling.MiniProfiler.Start(System.String)"/>ed.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.Storage">
+            <summary>
+            A <see cref="T:StackExchange.Profiling.Storage.IStorage"/> strategy to use for the current profiler. 
+            If null, then the <see cref="T:StackExchange.Profiling.Storage.IStorage"/> set in <see cref="P:StackExchange.Profiling.MiniProfiler.Settings.Storage"/> will be used.
+            </summary>
+            <remarks>Used to set custom storage for an individual request</remarks>
         </member>
         <member name="T:StackExchange.Profiling.MiniProfiler.Settings">
             <summary>
@@ -3012,9 +3654,16 @@
             When this setting is true, no stack trace will be collected, possibly improving profiler performance.
             </summary>
         </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.Settings.ExcludeStackTraceSnippetFromCustomTimings">
+            <summary>
+            By default, <see cref="T:StackExchange.Profiling.CustomTiming"/>s created by this assmebly will grab a stack trace to help 
+            locate where Remote Procedure Calls are being executed.  When this setting is true, no stack trace 
+            will be collected, possibly improving profiler performance.
+            </summary>
+        </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Settings.IgnoredPaths">
             <summary>
-            When <see cref="M:StackExchange.Profiling.MiniProfiler.Start(StackExchange.Profiling.ProfileLevel)"/> is called, if the current request url contains any items in this property,
+            When <see cref="M:StackExchange.Profiling.MiniProfiler.Start(System.String)"/> is called, if the current request url contains any items in this property,
             no profiler will be instantiated and no results will be displayed.
             Default value is { "/content/", "/scripts/", "/favicon.ico" }.
             </summary>
@@ -3058,7 +3707,7 @@
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Settings.SqlFormatter">
             <summary>
-            The formatter applied to the SQL being rendered (used only for UI)
+            The formatter applied to any SQL before being set in a <see cref="P:StackExchange.Profiling.CustomTiming.CommandString"/>.
             </summary>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Settings.Version">
@@ -3068,9 +3717,11 @@
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Settings.ProfilerProvider">
             <summary>
-            The provider used to provider the current instance of a provider
-            This is also 
+            The <see cref="T:StackExchange.Profiling.IProfilerProvider"/> class that is used to run MiniProfiler
             </summary>
+            <remarks>
+            If not set explicitly, will default to <see cref="T:StackExchange.Profiling.WebRequestProfilerProvider"/>
+            </remarks>
         </member>
         <member name="P:StackExchange.Profiling.MiniProfiler.Settings.Results_Authorize">
             <summary>
@@ -3092,9 +3743,15 @@
             Allows switching out stopwatches for unit testing.
             </summary>
         </member>
+        <member name="P:StackExchange.Profiling.MiniProfiler.Settings.EnableCompression">
+            <summary>
+            By default, the output of the MiniProfilerHandler is compressed, if the request supports that.
+            If this setting is false, the output won't be compressed. (Only do this when you take care of compression yourself)
+            </summary>
+        </member>
         <member name="T:StackExchange.Profiling.ClientTimingHelper">
             <summary>
-            Used to provide 
+            Pro
             </summary>
         </member>
         <member name="F:StackExchange.Profiling.ClientTimingHelper.InitScript">
@@ -3106,43 +3763,6 @@
             <summary>
             You can wrap an html block with timing wrappers using this helper
             </summary>
-            <param name="name">The name.</param>
-            <param name="html">The html.</param>
-            <returns>a string containing the timing script.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.ClientTimingHelper.InitClientTimings(System.Web.WebPages.WebPageBase)">
-            <summary>
-            This needs to be called at the beginning of the layout for client side probe support, returns nothing if mini profiler is not enabled
-            </summary>
-            <param name="page">The page.</param>
-            <returns>return the initialisation script.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.ClientTimingHelper.TimeScript(System.Web.WebPages.WebPageBase,System.String,System.Func{System.Object,System.Web.WebPages.HelperResult})">
-            <summary>
-            To be used inline in razor pages - times a script be sure to call <c>InitClientTimings</c> first
-            </summary>
-            <param name="page">The page.</param>
-            <param name="name">The name.</param>
-            <param name="html">The html.</param>
-            <returns>the timing script content</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.ClientTimingHelper.TimeScript(System.Web.WebPages.WebPageBase,System.String,System.Web.IHtmlString)">
-            <summary>
-            To be used inline in razor pages - times a script be sure to call <c>InitClientTimings</c> first
-            </summary>
-            <param name="page">The page.</param>
-            <param name="name">The name.</param>
-            <param name="html">The html.</param>
-            <returns>a string containing the time script</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.ClientTimingHelper.TimeScript(System.Web.WebPages.WebPageBase,System.String,System.String)">
-            <summary>
-            To be used inline in razor pages - times a script be sure to call <c>InitClientTimings</c> first
-            </summary>
-            <param name="page">The page.</param>
-            <param name="name">The name.</param>
-            <param name="html">The html.</param>
-            <returns>a string containing the time script.</returns>
         </member>
         <member name="T:StackExchange.Profiling.MiniProfilerExtensions">
             <summary>
@@ -3151,7 +3771,7 @@
         </member>
         <member name="M:StackExchange.Profiling.MiniProfilerExtensions.Inline``1(StackExchange.Profiling.MiniProfiler,System.Func{``0},System.String)">
             <summary>
-            Wraps <paramref name="selector"/> in a <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String,StackExchange.Profiling.ProfileLevel)"/> call and executes it, returning its result.
+            Wraps <paramref name="selector"/> in a <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String)"/> call and executes it, returning its result.
             </summary>
             <typeparam name="T">the type of result.</typeparam>
             <param name="profiler">The current profiling session or null.</param>
@@ -3159,14 +3779,75 @@
             <param name="name">The <see cref="T:StackExchange.Profiling.Timing"/> step name used to label the profiler results.</param>
             <returns>the profiled result.</returns>
         </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerExtensions.Inline``1(StackExchange.Profiling.MiniProfiler,System.Func{``0},System.String,StackExchange.Profiling.ProfileLevel)">
+            <summary>
+            Wraps <paramref name="selector"/> in a <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String)"/> call and executes it, returning its result.
+            </summary>
+            <typeparam name="T">the type of result.</typeparam>
+            <param name="profiler">The current profiling session or null.</param>
+            <param name="selector">Method to execute and profile.</param>
+            <param name="name">The <see cref="T:StackExchange.Profiling.Timing"/> step name used to label the profiler results.</param>
+            <param name="level">This step's visibility level; allows filtering when <see cref="M:StackExchange.Profiling.MiniProfiler.Start(System.String)"/> is called.</param>
+            <returns>the profiled result.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String)">
+            <summary>
+            Returns an <see cref="T:System.IDisposable"/> that will time the code between its creation and disposal.
+            </summary>
+            <param name="profiler">The current profiling session or null.</param>
+            <param name="name">A descriptive name for the code that is encapsulated by the resulting IDisposable's lifetime.</param>
+            <returns>the profile step</returns>
+        </member>
         <member name="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String,StackExchange.Profiling.ProfileLevel)">
             <summary>
             Returns an <see cref="T:System.IDisposable"/> that will time the code between its creation and disposal.
             </summary>
             <param name="profiler">The current profiling session or null.</param>
             <param name="name">A descriptive name for the code that is encapsulated by the resulting IDisposable's lifetime.</param>
-            <param name="level">This step's visibility level; allows filtering when <see cref="M:StackExchange.Profiling.MiniProfiler.Start(StackExchange.Profiling.ProfileLevel)"/> is called.</param>
+            <param name="level">This step's visibility level; allows filtering when <see cref="M:StackExchange.Profiling.MiniProfiler.Start(System.String)"/> is called.</param>
             <returns>the profile step</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerExtensions.StepIf(StackExchange.Profiling.MiniProfiler,System.String,System.Decimal,System.Boolean)">
+            <summary>
+            Returns an <see cref="T:System.IDisposable"/> that will time the code between its creation and disposal.
+            Will only save the <see cref="T:StackExchange.Profiling.Timing"/> if total time taken exceeds <paramref name="minSaveMs"/>.
+            </summary>
+            <param name="profiler">The current profiling session or null.</param>
+            <param name="name">A descriptive name for the code that is encapsulated by the resulting IDisposable's lifetime.</param>
+            <param name="minSaveMs">The minimum amount of time that needs to elapse in order for this result to be recorded.</param>
+            <param name="includeChildren">Should the amount of time spent in child timings be included when comparing total time
+            profiled with <paramref name="minSaveMs"/>? If true, will include children. If false will ignore children.</param>
+            <returns></returns>
+            <remarks>If <paramref name="includeChildren"/> is set to true and a child is removed due to its use of StepIf, then the 
+            time spent in that time will also not count for the current StepIf calculation.</remarks>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerExtensions.CustomTiming(StackExchange.Profiling.MiniProfiler,System.String,System.String,System.String)">
+            <summary>
+            Returns a new <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.CustomTiming(StackExchange.Profiling.MiniProfiler,System.String,System.String,System.String)"/> that will automatically set its <see cref="P:StackExchange.Profiling.CustomTiming.StartMilliseconds"/>
+            and <see cref="P:StackExchange.Profiling.CustomTiming.DurationMilliseconds"/>
+            </summary>
+            <param name="profiler">The current profiling session or null.</param>
+            <param name="category">The category under which this timing will be recorded.</param>
+            <param name="commandString">The command string that will be recorded along with this timing, for display in the MiniProfiler results.</param>
+            <param name="executeType">Execute Type to be associated with the Custom Timing. Example: Get, Set, Insert, Delete</param>
+            <remarks>
+            Should be used like the <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String)"/> extension method
+            </remarks>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerExtensions.CustomTimingIf(StackExchange.Profiling.MiniProfiler,System.String,System.String,System.Decimal,System.String)">
+            <summary>
+            Returns a new <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.CustomTiming(StackExchange.Profiling.MiniProfiler,System.String,System.String,System.String)"/> that will automatically set its <see cref="P:StackExchange.Profiling.CustomTiming.StartMilliseconds"/>
+            and <see cref="P:StackExchange.Profiling.CustomTiming.DurationMilliseconds"/>. Will only save the new <see cref="T:StackExchange.Profiling.Timing"/> if the total elapsed time
+            takes more than <paramef name="minSaveMs"/>.
+            </summary>
+            <param name="profiler">The current profiling session or null.</param>
+            <param name="category">The category under which this timing will be recorded.</param>
+            <param name="commandString">The command string that will be recorded along with this timing, for display in the MiniProfiler results.</param>
+            <param name="executeType">Execute Type to be associated with the Custom Timing. Example: Get, Set, Insert, Delete</param>
+            <param name="minSaveMs">The minimum amount of time that needs to elapse in order for this result to be recorded.</param>
+            <remarks>
+            Should be used like the <see cref="M:StackExchange.Profiling.MiniProfilerExtensions.Step(StackExchange.Profiling.MiniProfiler,System.String)"/> extension method 
+            </remarks>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfilerExtensions.Ignore(StackExchange.Profiling.MiniProfiler)">
             <summary>
@@ -3184,15 +3865,18 @@
             Adds <paramref name="externalProfiler"/>'s <see cref="T:StackExchange.Profiling.Timing"/> hierarchy to this profiler's current Timing step,
             allowing other threads, remote calls, etc. to be profiled and joined into this profiling session.
             </summary>
-            <param name="profiler">The profiler.</param>
-            <param name="externalProfiler">The external Profiler.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.MiniProfilerExtensions.AddCustomLink(StackExchange.Profiling.MiniProfiler,System.String,System.String)">
+            <summary>
+            Adds the <paramref name="text"/> and <paramref name="url"/> pair to <paramref name="profiler"/>'s 
+            <see cref="P:StackExchange.Profiling.MiniProfiler.CustomLinks"/> dictionary; will be displayed on the client in the bottom of the profiler popup.
+            </summary>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfilerExtensions.Render(StackExchange.Profiling.MiniProfiler)">
             <summary>
             Returns an html-encoded string with a text-representation of <paramref name="profiler"/>; returns "" when profiler is null.
             </summary>
             <param name="profiler">The current profiling session or null.</param>
-            <returns>a string containing the rendered result.</returns>
         </member>
         <member name="M:StackExchange.Profiling.MiniProfilerExtensions.RenderPlainText(StackExchange.Profiling.MiniProfiler)">
             <summary>
@@ -3200,135 +3884,6 @@
             <see cref="T:System.Console"/>, log, or unit test output.
             </summary>
             <param name="profiler">A profiling session with child <see cref="T:StackExchange.Profiling.Timing"/> instances.</param>
-            <returns>a string containing the plain text.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MiniProfilerExtensions.RenderImpl(StackExchange.Profiling.MiniProfiler,System.Boolean)">
-            <summary>
-            The render implementation.
-            </summary>
-            <param name="profiler">The profiler.</param>
-            <param name="htmlEncode">The html encode.</param>
-            <returns>a string containing the render implementation</returns>
-        </member>
-        <member name="T:StackExchange.Profiling.MVCHelpers.ProfilingActionFilter">
-            <summary>
-            This filter can be applied globally to hook up automatic action profiling
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.MVCHelpers.ProfilingActionFilter.StackKey">
-            <summary>
-            The stack key.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.ProfilingActionFilter.OnActionExecuting(System.Web.Mvc.ActionExecutingContext)">
-            <summary>
-            Happens before the action starts running
-            </summary>
-            <param name="filterContext">The filter Context.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.ProfilingActionFilter.OnActionExecuted(System.Web.Mvc.ActionExecutedContext)">
-            <summary>
-            Happens after the action executes
-            </summary>
-            <param name="filterContext">The filter Context.</param>
-        </member>
-        <member name="T:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine">
-            <summary>
-            You can wrap your view engines with this view to enable profiling on views and partial
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine._wrapped">
-            <summary>
-            The wrapped.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine.#ctor(System.Web.Mvc.IViewEngine)">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine"/> class. 
-            Wrap your view engines with this to allow profiling
-            </summary>
-            <param name="wrapped">the wrapped view engine.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine.Find(System.Web.Mvc.ControllerContext,System.String,System.Func{System.Web.Mvc.ViewEngineResult},System.Boolean)">
-            <summary>
-            find the view engine.
-            </summary>
-            <param name="controllerContext">The controller context.</param>
-            <param name="name">The name.</param>
-            <param name="finder">The finder.</param>
-            <param name="isPartial">The is partial.</param>
-            <returns>the view engine result.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine.FindPartialView(System.Web.Mvc.ControllerContext,System.String,System.Boolean)">
-            <summary>
-            Find a partial
-            </summary>
-            <param name="controllerContext">The controller Context.</param>
-            <param name="partialViewName">The partial View Name.</param>
-            <param name="useCache">The use Cache.</param>
-            <returns>the view engine result.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine.FindView(System.Web.Mvc.ControllerContext,System.String,System.String,System.Boolean)">
-            <summary>
-            Find a view
-            </summary>
-            <param name="controllerContext">The controller Context.</param>
-            <param name="viewName">The view Name.</param>
-            <param name="masterName">The master Name.</param>
-            <param name="useCache">The use Cache.</param>
-            <returns>the view engine result.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.ProfilingViewEngine.ReleaseView(System.Web.Mvc.ControllerContext,System.Web.Mvc.IView)">
-            <summary>
-            Find a partial
-            </summary>
-            <param name="controllerContext">The controller Context.</param>
-            <param name="view">The view.</param>
-        </member>
-        <member name="T:StackExchange.Profiling.MVCHelpers.WrappedView">
-            <summary>
-            Wrapped MVC View that ProfilingViewEngine uses to log profiling data
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.MVCHelpers.WrappedView._wrapped">
-            <summary>
-            MVC IView that is wrapped by the ProfilingViewEngine
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.WrappedView.#ctor(System.Web.Mvc.IView,System.String,System.Boolean)">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.MVCHelpers.WrappedView"/> class. 
-            </summary>
-            <param name="wrapped">
-            IView to wrap
-            </param>
-            <param name="name">
-            Name/Path to view
-            </param>
-            <param name="isPartial">
-            Whether view is Partial
-            </param>
-        </member>
-        <member name="M:StackExchange.Profiling.MVCHelpers.WrappedView.Render(System.Web.Mvc.ViewContext,System.IO.TextWriter)">
-            <summary>
-            Renders the WrappedView and logs profiling data
-            </summary>
-            <param name="viewContext">
-            The view Context.
-            </param>
-            <param name="writer">
-            The writer.
-            </param>
-        </member>
-        <member name="P:StackExchange.Profiling.MVCHelpers.WrappedView.Name">
-            <summary>
-            Gets or sets the wrapped view name.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.MVCHelpers.WrappedView.IsPartial">
-            <summary>
-            Gets or sets a value indicating whether the wrapped view is partial.
-            </summary>
         </member>
         <member name="T:StackExchange.Profiling.ProfileLevel">
             <summary>
@@ -3347,17 +3902,27 @@
         </member>
         <member name="T:StackExchange.Profiling.RenderPosition">
             <summary>
-            Dictates on which side of the page the profiler popup button is displayed; defaults to left.
+            Dictates on which side of the page the profiler popup button is displayed; defaults to top left.
             </summary>
         </member>
         <member name="F:StackExchange.Profiling.RenderPosition.Left">
             <summary>
-            Profiler popup button is displayed on the left.
+            Profiler popup button is displayed on the top left.
             </summary>
         </member>
         <member name="F:StackExchange.Profiling.RenderPosition.Right">
             <summary>
-            Profiler popup button is displayed on the right.
+            Profiler popup button is displayed on the top right.
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.RenderPosition.BottomLeft">
+            <summary>
+            Profiler popup button is displayed on the bottom left.
+            </summary>
+        </member>
+        <member name="F:StackExchange.Profiling.RenderPosition.BottomRight">
+            <summary>
+            Profiler popup button is displayed on the bottom right.
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.SqlFormatters.InlineFormatter">
@@ -3365,179 +3930,24 @@
             Formats any SQL query with inline parameters, optionally including the value type
             </summary>
         </member>
-        <member name="T:StackExchange.Profiling.SqlFormatters.ISqlFormatter">
-            <summary>
-            Takes a <c>SqlTiming</c> and returns a formatted SQL string, for parameter replacement, etc.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.ISqlFormatter.FormatSql(StackExchange.Profiling.SqlTiming)">
-            <summary>
-            Return SQL the way you want it to look on the in the trace. Usually used to format parameters 
-            </summary>
-            <param name="timing">the SQL timing data.</param>
-            <returns>Formatted SQL</returns>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlFormatters.InlineFormatter.ParamPrefixes">
-            <summary>
-            The parameter prefixes.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlFormatters.InlineFormatter.includeTypeInfo">
-            <summary>
-            The include type info.
-            </summary>
-        </member>
         <member name="M:StackExchange.Profiling.SqlFormatters.InlineFormatter.#ctor(System.Boolean)">
             <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.SqlFormatters.InlineFormatter"/> class. 
-            Creates a new Inline SQL Formatter, optionally including the parameter type info in comments beside the replaced value
+            Creates a new Inline SQL Formatter, optionally including the parameter type info 
+            in comments beside the replaced value
             </summary>
-            <param name="includeTypeInfo">whether to include a comment after the value, indicating the type<c>, e.g. /* @myParam DbType.Int32 */</c></param>
+            <param name="includeTypeInfo">
+            whether to include a comment after the value, indicating the type, e.g. <c>/* @myParam DbType.Int32 */</c>
+            </param>
         </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.InlineFormatter.FormatSql(StackExchange.Profiling.SqlTiming)">
+        <member name="M:StackExchange.Profiling.SqlFormatters.InlineFormatter.FormatSql(System.String,System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter})">
             <summary>
-            Formats the SQL in a generic friendly format, including the parameter type information in a comment if it was specified in the InlineFormatter constructor
+            Formats the SQL in a generic friendly format, including the parameter type information 
+            in a comment if it was specified in the InlineFormatter constructor
             </summary>
-            <param name="timing">The <c>SqlTiming</c> to format</param>
-            <returns>A formatted SQL string</returns>
         </member>
         <member name="M:StackExchange.Profiling.SqlFormatters.InlineFormatter.GetParameterValue(StackExchange.Profiling.SqlTimingParameter)">
             <summary>
             Returns a string representation of the parameter's value, including the type
-            </summary>
-            <param name="p">The parameter to get a value for</param>
-            <returns>a string containing the parameter value.</returns>
-        </member>
-        <member name="T:StackExchange.Profiling.SqlFormatters.OracleFormatter">
-            <summary>
-            Oracle formatter for all your Oracle formatting needs 
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlFormatters.OracleFormatter.ParamTranslator">
-            <summary>
-            The parameter translator.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlFormatters.OracleFormatter.DontQuote">
-            <summary>
-            don't quote.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.OracleFormatter.GetWithLenFormatter(System.String)">
-            <summary>
-            The get with len formatter.
-            </summary>
-            <param name="native">The native string</param>
-            <returns>the SQL timing function</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.OracleFormatter.#cctor">
-            <summary>
-            Initialises static members of the <see cref="T:StackExchange.Profiling.SqlFormatters.OracleFormatter"/> class.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.OracleFormatter.FormatSql(StackExchange.Profiling.SqlTiming)">
-            <summary>
-            unimplemented at the moment TODO: Oracle Formatter.
-            </summary>
-            <param name="timing">
-            The timing.
-            </param>
-            <returns>the formatted SQL</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.OracleFormatter.PrepareValue(StackExchange.Profiling.SqlTimingParameter)">
-            <summary>
-            prepare the value.
-            </summary>
-            <param name="p">The p.</param>
-            <returns>the prepared string.</returns>
-        </member>
-        <member name="T:StackExchange.Profiling.SqlFormatters.SqlServerFormatter">
-            <summary>
-            Formats SQL server queries with a DECLARE up top for parameter values
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.ParamTranslator">
-            <summary>
-            The parameter translator.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.DontQuote">
-            <summary>
-            don't quote.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.GetWithLenFormatter(System.String)">
-            <summary>
-            get the 'with length' formatter.
-            </summary>
-            <param name="native">The native string.</param>
-            <returns>the SQL timing parameter formatter function</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.#cctor">
-            <summary>
-            Initialises static members of the <see cref="T:StackExchange.Profiling.SqlFormatters.SqlServerFormatter"/> class.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.FormatSql(StackExchange.Profiling.SqlTiming)">
-            <summary>
-            Formats the SQL in a SQL-Server friendly way, with DECLARE statements for the parameters up top.
-            </summary>
-            <param name="timing">The <c>SqlTiming</c> to format</param>
-            <returns>A formatted SQL string</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlFormatters.SqlServerFormatter.PrepareValue(StackExchange.Profiling.SqlTimingParameter)">
-            <summary>
-            prepare the value.
-            </summary>
-            <param name="parameter">The parameter.</param>
-            <returns>the prepared parameter value.</returns>
-        </member>
-        <member name="T:StackExchange.Profiling.SqlTimingParameter">
-            <summary>
-            Information about a DbParameter used in the sql statement profiled by SqlTiming.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTimingParameter.Equals(System.Object)">
-            <summary>
-            Returns true if this has the same parent <see cref="P:StackExchange.Profiling.SqlTiming.Id"/>, <see cref="P:StackExchange.Profiling.SqlTimingParameter.Name"/> and <see cref="P:StackExchange.Profiling.SqlTimingParameter.Value"/> as <paramref name="obj"/>.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTimingParameter.GetHashCode">
-            <summary>
-            Returns the XOR of certain properties.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTimingParameter.ToString">
-            <summary>
-            The to string.
-            </summary>
-            <returns>
-            The <see cref="T:System.String"/>.
-            </returns>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTimingParameter.ParentSqlTimingId">
-            <summary>
-            Which SqlTiming this Parameter was executed with.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTimingParameter.Name">
-            <summary>
-            Parameter name, e.g. "@routeName"
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTimingParameter.Value">
-            <summary>
-            The value submitted to the database.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTimingParameter.DbType">
-            <summary>
-            System.Data.DbType, e.g. "String", "Bit"
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTimingParameter.Size">
-            <summary>
-            How large the type is, e.g. for string, size could be 4000
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.SingletonProfilerProvider">
@@ -3546,111 +3956,32 @@
             instance of a <see cref="T:StackExchange.Profiling.MiniProfiler"/> to be the <see cref="P:StackExchange.Profiling.MiniProfiler.Current"/> one.
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.SingletonProfilerProvider._profiler">
-            <summary>
-            The _profiler.
-            </summary>
-        </member>
         <member name="M:StackExchange.Profiling.SingletonProfilerProvider.GetCurrentProfiler">
             <summary>
-            The get current profiler.
+            The name says it all
             </summary>
-            <returns>
-            The <see cref="T:StackExchange.Profiling.MiniProfiler"/>.
-            </returns>
+            <returns></returns>
         </member>
-        <member name="M:StackExchange.Profiling.SingletonProfilerProvider.Start(StackExchange.Profiling.ProfileLevel)">
+        <member name="M:StackExchange.Profiling.SingletonProfilerProvider.Start(System.String)">
             <summary>
-            The start.
+            Starts a new profiling session.
             </summary>
-            <param name="level">
-            The level.
-            </param>
-            <returns>
-            The <see cref="T:StackExchange.Profiling.MiniProfiler"/>.
-            </returns>
+        </member>
+        <member name="M:StackExchange.Profiling.SingletonProfilerProvider.Start(StackExchange.Profiling.ProfileLevel,System.String)">
+            <summary>
+            Starts a new profiling session.
+            </summary>
         </member>
         <member name="M:StackExchange.Profiling.SingletonProfilerProvider.Stop(System.Boolean)">
             <summary>
-            The stop.
+            Stops the current profiling session.
             </summary>
-            <param name="discardResults">
-            The discard results.
-            </param>
         </member>
         <member name="T:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage">
             <summary>
-            Understands how to store a <see cref="T:StackExchange.Profiling.MiniProfiler"/> to the <see cref="P:System.Web.HttpRuntime.Cache"/> with absolute expiration.
+            Understands how to store a <see cref="T:StackExchange.Profiling.MiniProfiler"/> to the <see cref="P:System.Web.HttpRuntime.Cache"/> 
+            with absolute expiration.
             </summary>
-        </member>
-        <member name="T:StackExchange.Profiling.Storage.IStorage">
-            <summary>
-            Provides saving and loading <see cref="T:StackExchange.Profiling.MiniProfiler"/>s to a storage medium.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.IStorage.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
-            <summary>
-            list the result keys.
-            </summary>
-            <param name="maxResults">The max results.</param>
-            <param name="start">The start.</param>
-            <param name="finish">The finish.</param>
-            <param name="orderBy">order by.</param>
-            <returns>the list of keys in the result.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.IStorage.Save(StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            Stores <paramref name="profiler"/> under its <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>.
-            </summary>
-            <param name="profiler">The results of a profiling session.</param>
-            <remarks>
-            Should also ensure the profiler is stored as being un-viewed by its profiling <see cref="P:StackExchange.Profiling.MiniProfiler.User"/>.
-            </remarks>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.IStorage.Load(System.Guid)">
-            <summary>
-            Returns a <see cref="T:StackExchange.Profiling.MiniProfiler"/> from storage based on <paramref name="id"/>, which should map to <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>.
-            </summary>
-            <param name="id">
-            The id.
-            </param>
-            <remarks>
-            Should also update that the resulting profiler has been marked as viewed by its profiling <see cref="P:StackExchange.Profiling.MiniProfiler.User"/>.
-            </remarks>
-            <returns>
-            The <see cref="T:StackExchange.Profiling.MiniProfiler"/>.
-            </returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.IStorage.SetUnviewed(System.String,System.Guid)">
-            <summary>
-            Sets a particular profiler session so it is considered "un-viewed"  
-            </summary>
-            <param name="user">
-            The user.
-            </param>
-            <param name="id">
-            The id.
-            </param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.IStorage.SetViewed(System.String,System.Guid)">
-            <summary>
-            Sets a particular profiler session to "viewed"
-            </summary>
-            <param name="user">
-            The user.
-            </param>
-            <param name="id">
-            The id.
-            </param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.IStorage.GetUnviewedIds(System.String)">
-            <summary>
-            Returns a list of <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>s that haven't been seen by <paramref name="user"/>.
-            </summary>
-            <param name="user">
-            User identified by the current <c>MiniProfiler.Settings.UserProvider</c>
-            </param>
-            <returns>the list of key values.</returns>
         </member>
         <member name="F:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.CacheKeyPrefix">
             <summary>
@@ -3663,48 +3994,33 @@
             Syncs access to runtime cache when adding a new list of ids for a user.
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage._profiles">
-            <summary>
-            The profiles.
-            </summary>
-        </member>
         <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.#ctor(System.TimeSpan)">
             <summary>
             Initialises a new instance of the <see cref="T:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage"/> class. 
             Returns a new HttpRuntimeCacheStorage class that will cache MiniProfilers for the specified duration.
             </summary>
-            <param name="cacheDuration">
-            The cache Duration.
-            </param>
         </member>
         <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.Save(StackExchange.Profiling.MiniProfiler)">
             <summary>
             Saves <paramref name="profiler"/> to the HttpRuntime.Cache under a key concatenated with <see cref="F:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.CacheKeyPrefix"/>
             and the parameter's <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>.
             </summary>
-            <param name="profiler">The profiler.</param>
         </member>
         <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.SetUnviewed(System.String,System.Guid)">
             <summary>
             remembers we did not view the profile
             </summary>
-            <param name="user">The user.</param>
-            <param name="id">The id.</param>
         </member>
         <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.SetViewed(System.String,System.Guid)">
             <summary>
             Set the profile to viewed for this user
             </summary>
-            <param name="user">The user.</param>
-            <param name="id">The id.</param>
         </member>
         <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.Load(System.Guid)">
             <summary>
             Returns the saved <see cref="T:StackExchange.Profiling.MiniProfiler"/> identified by <paramref name="id"/>. Also marks the resulting
             profiler <see cref="P:StackExchange.Profiling.MiniProfiler.HasUserViewed"/> to true.
             </summary>
-            <param name="id">The id.</param>
-            <returns>the mini profiler</returns>
         </member>
         <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.GetUnviewedIds(System.String)">
             <summary>
@@ -3713,92 +4029,26 @@
             <param name="user">
             User identified by the current <c>MiniProfiler.Settings.UserProvider</c>.
             </param>
-            <returns>the list of keys.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.InsertIntoCache(System.String,System.Object)">
-            <summary>
-            insert into cache.
-            </summary>
-            <param name="key">The key.</param>
-            <param name="value">The value.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.GetCacheKey(System.Guid)">
-            <summary>
-            get the cache key.
-            </summary>
-            <param name="id">The id.</param>
-            <returns>a string containing the cache key</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.GetPerUserUnviewedCacheKey(System.String)">
-            <summary>
-            get the per user un-viewed cache key.
-            </summary>
-            <param name="user">The user.</param>
-            <returns>a string containing the un-viewed key</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.GetPerUserUnviewedIds(StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            get the per user un viewed ids.
-            </summary>
-            <param name="profiler">The profiler.</param>
-            <returns>the list of keys</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.GetPerUserUnviewedIds(System.String)">
-            <summary>
-            get the per user un-viewed ids.
-            </summary>
-            <param name="user">The user.</param>
-            <returns>the list of keys</returns>
         </member>
         <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
             <summary>
-            list the result keys.
+            List the latest profiling results.
             </summary>
-            <param name="maxResults">The max results.</param>
-            <param name="start">The start.</param>
-            <param name="finish">The finish.</param>
-            <param name="orderBy">order by.</param>
-            <returns>the list of keys in the result.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.BinaryClosestSearch(System.DateTime)">
-            <summary>
-            The closest binary search.
-            </summary>
-            <param name="date">The date.</param>
-            <returns>The <see cref="T:System.Int32"/>.</returns>
         </member>
         <member name="P:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.CacheDuration">
             <summary>
-            Gets or sets how long to cache each <see cref="T:StackExchange.Profiling.MiniProfiler"/> for (i.e. the absolute expiration parameter of 
-            <see cref="M:System.Web.Caching.Cache.Insert(System.String,System.Object,System.Web.Caching.CacheDependency,System.DateTime,System.TimeSpan,System.Web.Caching.CacheItemUpdateCallback)"/>)
+            Gets or sets how long to cache each <see cref="T:StackExchange.Profiling.MiniProfiler"/> for, in absolute terms.
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.ProfileInfo">
             <summary>
-            The profile info.
-            FYI: SortedList on uses the comparer for both key lookups and insertion
+            Identifies a MiniProfiler result and only contains the needed info for sorting a list of profiling sessions.
             </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.ProfileInfo.CompareTo(StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.ProfileInfo)">
-            <summary>
-            compare the profile information.
-            </summary>
-            <param name="other">The other profile info instance..</param>
-            <returns>the comparison result.</returns>
-        </member>
-        <member name="P:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.ProfileInfo.Started">
-            <summary>
-            Gets or sets the started.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.Storage.HttpRuntimeCacheStorage.ProfileInfo.Id">
-            <summary>
-            Gets or sets the id.
-            </summary>
+            <remarks>SortedList on uses the comparer for both key lookups and insertion</remarks>
         </member>
         <member name="T:StackExchange.Profiling.Storage.ListResultsOrder">
             <summary>
-            The list results order.
+            How lists should be sorted.
             </summary>
         </member>
         <member name="F:StackExchange.Profiling.Storage.ListResultsOrder.Ascending">
@@ -3816,51 +4066,30 @@
             Contains helper code to time SQL statements.
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.SqlProfiler._inProgress">
-            <summary>
-            The _in progress.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlProfiler._inProgressReaders">
-            <summary>
-            The _in progress readers.
-            </summary>
-        </member>
         <member name="M:StackExchange.Profiling.SqlProfiler.#ctor(StackExchange.Profiling.MiniProfiler)">
             <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.SqlProfiler"/> class. 
-            Returns a new <c>SqlProfiler</c> to be used in the 'profiler' session.
+            Returns a new <c>SqlProfiler</c> to be used in the <paramref name="profiler"/> session.
             </summary>
-            <param name="profiler">
-            The profiler.
-            </param>
         </member>
-        <member name="M:StackExchange.Profiling.SqlProfiler.ExecuteStartImpl(System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType)">
+        <member name="M:StackExchange.Profiling.SqlProfiler.ExecuteStartImpl(System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType)">
             <summary>
             Tracks when 'command' is started.
             </summary>
-            <param name="command">The command.</param>
-            <param name="type">The type.</param>
         </member>
-        <member name="M:StackExchange.Profiling.SqlProfiler.GetInProgressCommands">
-            <summary>
-            Returns all currently open commands on this connection
-            </summary>
-            <returns>the set of SQL timings.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlProfiler.ExecuteFinishImpl(System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType,System.Data.Common.DbDataReader)">
+        <member name="M:StackExchange.Profiling.SqlProfiler.ExecuteFinishImpl(System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType,System.Data.Common.DbDataReader)">
             <summary>
             Finishes profiling for 'command', recording durations.
             </summary>
-            <param name="command">The command.</param>
-            <param name="type">The type.</param>
-            <param name="reader">The reader.</param>
         </member>
         <member name="M:StackExchange.Profiling.SqlProfiler.ReaderFinishedImpl(System.Data.IDataReader)">
             <summary>
             Called when 'reader' finishes its iterations and is closed.
             </summary>
-            <param name="reader">The reader.</param>
+        </member>
+        <member name="M:StackExchange.Profiling.SqlProfiler.GetInProgressCommands">
+            <summary>
+            Returns all currently open commands on this connection
+            </summary>
         </member>
         <member name="P:StackExchange.Profiling.SqlProfiler.Profiler">
             <summary>
@@ -3872,435 +4101,19 @@
             Helper methods that allow operation on <c>SqlProfilers</c>, regardless of their instantiation.
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.SqlProfilerExtensions.ExecuteStart(StackExchange.Profiling.SqlProfiler,System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType)">
+        <member name="M:StackExchange.Profiling.SqlProfilerExtensions.ExecuteStart(StackExchange.Profiling.SqlProfiler,System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType)">
             <summary>
             Tracks when 'command' is started.
             </summary>
-            <param name="sqlProfiler">The SQL Profiler.</param>
-            <param name="command">The command.</param>
-            <param name="type">The type.</param>
         </member>
-        <member name="M:StackExchange.Profiling.SqlProfilerExtensions.ExecuteFinish(StackExchange.Profiling.SqlProfiler,System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType,System.Data.Common.DbDataReader)">
+        <member name="M:StackExchange.Profiling.SqlProfilerExtensions.ExecuteFinish(StackExchange.Profiling.SqlProfiler,System.Data.IDbCommand,StackExchange.Profiling.Data.SqlExecuteType,System.Data.Common.DbDataReader)">
             <summary>
             Finishes profiling for 'command', recording durations.
             </summary>
-            <param name="sqlProfiler">The SQL Profiler.</param>
-            <param name="command">The command.</param>
-            <param name="type">The type.</param>
-            <param name="reader">The reader.</param>
         </member>
         <member name="M:StackExchange.Profiling.SqlProfilerExtensions.ReaderFinish(StackExchange.Profiling.SqlProfiler,System.Data.IDataReader)">
             <summary>
             Called when 'reader' finishes its iterations and is closed.
-            </summary>
-            <param name="sqlProfiler">The SQL Profiler.</param>
-            <param name="reader">The reader.</param>
-        </member>
-        <member name="T:StackExchange.Profiling.SqlTiming">
-            <summary>
-            Profiles a single SQL execution.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlTiming.MaxByteParameterSize">
-            <summary>
-            Holds the maximum size that will be stored for byte[] parameters
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlTiming._profiler">
-            <summary>
-            The profiler.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlTiming._startTicks">
-            <summary>
-            The start ticks.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.SqlTiming._parentTiming">
-            <summary>
-            The _parent timing.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.SqlTiming"/> class. 
-            Obsolete - used for serialization.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.#ctor(System.Data.IDbCommand,StackExchange.Profiling.Data.ExecuteType,StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.SqlTiming"/> class. 
-            Creates a new <c>SqlTiming</c> to profile 'command'.
-            </summary>
-            <param name="command">The command.</param>
-            <param name="type">The type.</param>
-            <param name="profiler">The profiler.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.ToString">
-            <summary>
-            Returns a snippet of the SQL command and the duration.
-            </summary>
-            <returns>the string representation</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.Equals(System.Object)">
-            <summary>
-            Returns true if Ids match.
-            </summary>
-            <param name="rValue">
-            The rValue.
-            </param>
-            <returns>true if rValue is equal to </returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.GetHashCode">
-            <summary>
-            Returns hash code of Id.
-            </summary>
-            <returns>the hash code value.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.ExecutionComplete(System.Boolean)">
-            <summary>
-            Called when command execution is finished to determine this <c>SqlTiming's</c> duration.
-            </summary>
-            <param name="isReader">The Reader.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.ReaderFetchComplete">
-            <summary>
-            Called when database reader is closed, ending profiling for <see cref="F:StackExchange.Profiling.Data.ExecuteType.Reader"/> <c>SqlTimings</c>.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.GetValue(System.Data.IDataParameter)">
-            <summary>
-            Returns the value of <paramref name="parameter"/> suitable for storage/display.
-            </summary>
-            <param name="parameter">The DB Parameter.
-            </param>
-            <returns>a string containing the value.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.GetParameterSize(System.Data.IDbDataParameter)">
-            <summary>
-            get the parameter size.
-            </summary>
-            <param name="parameter">The DB parameter.</param>
-            <returns>the parameter size</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.GetDurationMilliseconds">
-            <summary>
-            get the duration in milliseconds.
-            </summary>
-            <returns>return the duration in milliseconds</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.AddSpacesToParameters(System.String)">
-            <summary>
-            To help with display, put some space around <c>sammiched</c> commas
-            </summary>
-            <param name="commandString">The command String.</param>
-            <returns>a string containing the formatted string.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.SqlTiming.GetCommandParameters(System.Data.IDbCommand)">
-            <summary>
-            get the command parameters.
-            </summary>
-            <param name="command">The command.</param>
-            <returns>the list of SQL timing parameters</returns>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.Id">
-            <summary>
-            Gets or sets a unique identifier for this <c>SqlTiming</c>
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.ExecuteType">
-            <summary>
-            Gets or sets the category of SQL statement executed.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.CommandString">
-            <summary>
-            Gets or sets the SQL that was executed.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.FormattedCommandString">
-            <summary>
-            Gets the command string with special formatting applied based on <c>MiniProfiler.Settings.SqlFormatter</c>
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.StackTraceSnippet">
-            <summary>
-            Gets or sets roughly where in the calling code that this SQL was executed.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.StartMilliseconds">
-            <summary>
-            Gets or sets the offset from main <c>MiniProfiler</c> start that this SQL began.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.DurationMilliseconds">
-            <summary>
-            Gets or sets how long this SQL statement took to execute.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.FirstFetchDurationMilliseconds">
-            <summary>
-            Gets or sets When executing readers, how long it took to come back initially from the database, 
-            before all records are fetched and reader is closed.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.Parameters">
-            <summary>
-            Gets or sets any parameter names and values used by the profiled <c>DbCommand.</c>
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.ParentTimingId">
-            <summary>
-            Gets or sets Id of the Timing this statement was executed in.
-            </summary>
-            <remarks>
-            Needed for database deserialization.
-            </remarks>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.ParentTiming">
-            <summary>
-            Gets or sets the Timing step that this SQL execution occurred in.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.SqlTiming.IsDuplicate">
-            <summary>
-            Gets or sets a value indicating whether other identical SQL statements have been executed during this MiniProfiler session.
-            </summary>
-        </member>
-        <member name="T:StackExchange.Profiling.Storage.DatabaseStorageBase">
-            <summary>
-            Understands how to save MiniProfiler results to a MSSQL database, allowing more permanent storage and
-            querying of slow results.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.#ctor(System.String)">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Storage.DatabaseStorageBase"/> class. 
-            Returns a new <c>SqlServerDatabaseStorage</c> object that will insert into the database identified by connectionString.
-            </summary>
-            <param name="connectionString">The connection String.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.Save(StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            Saves 'profiler' to a database under its <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>.
-            </summary>
-            <param name="profiler">The profiler.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.Load(System.Guid)">
-            <summary>
-            Returns the MiniProfiler identified by 'id' from the database or null when no MiniProfiler exists under that 'id'.
-            </summary>
-            <param name="id">
-            The id.
-            </param>
-            <returns>the mini profiler</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.SetUnviewed(System.String,System.Guid)">
-            <summary>
-            Sets a particular profiler session so it is considered "un-viewed"  
-            </summary>
-            <param name="user">The user.</param>
-            <param name="id">The id.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.SetViewed(System.String,System.Guid)">
-            <summary>
-            Sets a particular profiler session to "viewed"
-            </summary>
-            <param name="user">The user.</param>
-            <param name="id">The id.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.GetUnviewedIds(System.String)">
-            <summary>
-            Returns a list of <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>s that haven't been seen by <paramref name="user"/>.
-            </summary>
-            <param name="user">
-            User identified by the current <c>MiniProfiler.Settings.UserProvider</c>.
-            </param>
-            <returns>the list of keys for the supplied user</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
-            <summary>
-            Implement a basic list search here
-            </summary>
-            <param name="maxResults">The max number of results.</param>
-            <param name="start">The start.</param>
-            <param name="finish">The finish.</param>
-            <param name="orderBy">order By.</param>
-            <returns>the list of GUID keys</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.GetConnection">
-            <summary>
-            Returns a <c>DbConnection</c> for your specific provider.
-            </summary>
-            <returns>the database connection</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.GetOpenConnection">
-            <summary>
-            Returns a <c>DbConnection</c> already opened for execution.
-            </summary>
-            <returns>the database connection</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.DatabaseStorageBase.MapTimings(StackExchange.Profiling.MiniProfiler,System.Collections.Generic.List{StackExchange.Profiling.Timing},System.Collections.Generic.List{StackExchange.Profiling.SqlTiming},System.Collections.Generic.List{StackExchange.Profiling.SqlTimingParameter},StackExchange.Profiling.ClientTimings)">
-            <summary>
-            Giving freshly selected collections, this method puts them in the correct
-            hierarchy under the 'result' MiniProfiler.
-            </summary>
-            <param name="result">The result.</param>
-            <param name="timings">The timings.</param>
-            <param name="sqlTimings">The SQL Timings.</param>
-            <param name="sqlParameters">The SQL Parameters.</param>
-            <param name="clientTimings">The client Timings.</param>
-        </member>
-        <member name="P:StackExchange.Profiling.Storage.DatabaseStorageBase.ConnectionString">
-            <summary>
-            Gets or sets how we connect to the database used to save/load MiniProfiler results.
-            </summary>
-        </member>
-        <member name="T:StackExchange.Profiling.Storage.SqlServerStorage">
-            <summary>
-            Understands how to store a <see cref="T:StackExchange.Profiling.MiniProfiler"/> to a MSSQL database.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.Storage.SqlServerStorage.TableCreationScript">
-            <summary>
-            Creates needed tables. Run this once on your database.
-            </summary>
-            <remarks>
-            Works in SQL server and <c>sqlite</c> (with documented removals).
-            TODO: add indexes
-            </remarks>
-        </member>
-        <member name="F:StackExchange.Profiling.Storage.SqlServerStorage.LoadSqlStatements">
-            <summary>
-            load the SQL statements.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.Storage.SqlServerStorage.LoadSqlBatch">
-            <summary>
-            load the SQL batch.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.#ctor(System.String)">
-            <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Storage.SqlServerStorage"/> class. 
-            Initializes a new instance of the <see cref="T:StackExchange.Profiling.Storage.SqlServerStorage"/> class. 
-            </summary>
-            <param name="connectionString">
-            The connection String.
-            </param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.Save(StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            Stores to <c>dbo.MiniProfilers</c> under its <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>; 
-            stores all child Timings and <c>SqlTimings</c> to their respective tables.
-            </summary>
-            <param name="profiler">the mini profiler</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.Load(System.Guid)">
-            <summary>
-            Loads the <c>MiniProfiler</c> identified by 'id' from the database.
-            </summary>
-            <param name="id">The id.</param>
-            <returns>the mini profiler.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SetUnviewed(System.String,System.Guid)">
-            <summary>
-            sets the session to un-viewed 
-            </summary>
-            <param name="user">The user.</param>
-            <param name="id">The id.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SetViewed(System.String,System.Guid)">
-            <summary>
-            sets the session to viewed
-            </summary>
-            <param name="user">The user.</param>
-            <param name="id">The id.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.GetUnviewedIds(System.String)">
-            <summary>
-            Returns a list of <see cref="P:StackExchange.Profiling.MiniProfiler.Id"/>s that haven't been seen by <paramref name="user"/>.
-            </summary>
-            <param name="user">User identified by the current UserProvider"/&gt;.</param>
-            <returns>the list of keys.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.List(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime},StackExchange.Profiling.Storage.ListResultsOrder)">
-            <summary>
-            list the results.
-            </summary>
-            <param name="maxResults">The max results.</param>
-            <param name="start">The start.</param>
-            <param name="finish">The finish.</param>
-            <param name="orderBy">order by.</param>
-            <returns>the list of key values.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SaveClientTiming(System.Data.Common.DbConnection,StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            save the client timing.
-            </summary>
-            <param name="connection">The connection.</param>
-            <param name="profiler">The profiler.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SaveTiming(System.Data.Common.DbConnection,StackExchange.Profiling.MiniProfiler,StackExchange.Profiling.Timing)">
-            <summary>
-            Saves parameter Timing to the <c>dbo.MiniProfilerTimings</c> table.
-            </summary>
-            <param name="connection">The connection.</param>
-            <param name="profiler">The profiler.</param>
-            <param name="timing">The timing detail.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SaveSqlTiming(System.Data.Common.DbConnection,StackExchange.Profiling.MiniProfiler,StackExchange.Profiling.SqlTiming)">
-            <summary>
-            Saves parameter <c>sqlTiming</c> to the <c>dbo.MiniProfilerSqlTimings</c> table.
-            </summary>
-            <param name="connection">The connection.</param>
-            <param name="profiler">The profiler.</param>
-            <param name="sqlTiming">The SQL Timing.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.SaveSqlTimingParameters(System.Data.Common.DbConnection,StackExchange.Profiling.MiniProfiler,StackExchange.Profiling.SqlTiming)">
-            <summary>
-            Saves any <c>SqlTimingParameters</c> used in the profiled <c>SqlTiming</c> to the <c>dbo.MiniProfilerSqlTimingParameters</c> table.
-            </summary>
-            <param name="connection">The connection.</param>
-            <param name="profiler">The profiler.</param>
-            <param name="sqlTiming">The SQL Timing.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.GetConnection">
-            <summary>
-            Returns a connection to SQL Server.
-            </summary>
-            <returns>the database connection</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.LoadInBatch(System.Data.Common.DbConnection,System.Object)">
-            <summary>
-            load the profiler in a batch.
-            </summary>
-            <param name="connection">The connection.</param>
-            <param name="keyParameter">The id parameter.</param>
-            <returns>the mini profiler.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.LoadIndividually(System.Data.Common.DbConnection,System.Object)">
-            <summary>
-            load individually.
-            </summary>
-            <param name="connection">The connection.</param>
-            <param name="keyParameter">The id Parameter.</param>
-            <returns>the mini profiler.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Storage.SqlServerStorage.LoadFor``1(System.Data.Common.DbConnection,System.Object)">
-            <summary>
-            load statements for the supplied key from the connection.
-            </summary>
-            <param name="connection">The connection.</param>
-            <param name="keyParameter">The id parameter.</param>
-            <typeparam name="T">the type of timing (instance) to load</typeparam>
-            <returns>the list of loaded timing instances.</returns>
-        </member>
-        <member name="P:StackExchange.Profiling.Storage.SqlServerStorage.EnableBatchSelects">
-            <summary>
-            Gets a value indicating whether or not to enable batch selects.
-            A full install of sQL Server can return multiple result sets in one query, allowing the use of <see cref="M:StackExchange.Profiling.Helpers.Dapper.SqlMapper.QueryMultiple(System.Data.IDbConnection,System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})"/>.
-            However, sQL Server CE and <c>Sqlite</c> cannot do this, so inheritors for those providers can return false here.
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.Timing">
@@ -4313,62 +4126,31 @@
             Offset from parent MiniProfiler's creation that this Timing was created.
             </summary>
         </member>
-        <member name="F:StackExchange.Profiling.Timing._parentTiming">
-            <summary>
-            Gets or sets the parent timing.
-            </summary>
-        </member>
         <member name="M:StackExchange.Profiling.Timing.#ctor">
             <summary>
             Initialises a new instance of the <see cref="T:StackExchange.Profiling.Timing"/> class. 
             Obsolete - used for serialization.
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.Timing.#ctor(StackExchange.Profiling.MiniProfiler,StackExchange.Profiling.Timing,System.String)">
+        <member name="M:StackExchange.Profiling.Timing.#ctor(StackExchange.Profiling.MiniProfiler,StackExchange.Profiling.Timing,System.String,System.Nullable{System.Decimal},System.Nullable{System.Boolean})">
             <summary>
-            Initialises a new instance of the <see cref="T:StackExchange.Profiling.Timing"/> class. 
             Creates a new Timing named 'name' in the 'profiler's session, with 'parent' as this Timing's immediate ancestor.
-            </summary>
-            <param name="profiler">
-            The profiler.
-            </param>
-            <param name="parent">
-            The parent.
-            </param>
-            <param name="name">
-            The name.
-            </param>
-        </member>
-        <member name="M:StackExchange.Profiling.Timing.RebuildParentTimings">
-            <summary>
-            Rebuilds all the parent timings on deserialization calls
             </summary>
         </member>
         <member name="M:StackExchange.Profiling.Timing.ToString">
             <summary>
             Returns this Timing's Name.
             </summary>
-            <returns>a string containing the name.</returns>
         </member>
         <member name="M:StackExchange.Profiling.Timing.Equals(System.Object)">
             <summary>
             Returns true if Ids match.
             </summary>
-            <param name="rValue">The rValue.</param>
-            <returns>true if the supplied value is the same as </returns>
         </member>
         <member name="M:StackExchange.Profiling.Timing.GetHashCode">
             <summary>
             Returns hash code of Id.
             </summary>
-            <returns>the hash code value.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.Timing.AddKeyValue(System.String,System.String)">
-            <summary>
-            Adds arbitrary string 'value' under 'key', allowing custom properties to be stored in this Timing step.
-            </summary>
-            <param name="key">The key.</param>
-            <param name="value">The value.</param>
         </member>
         <member name="M:StackExchange.Profiling.Timing.Stop">
             <summary>
@@ -4377,29 +4159,31 @@
         </member>
         <member name="M:StackExchange.Profiling.Timing.System#IDisposable#Dispose">
             <summary>
-            dispose the profiler.
+            Stops profiling, allowing the <c>using</c> construct to neatly encapsulate a region to be profiled.
             </summary>
         </member>
         <member name="M:StackExchange.Profiling.Timing.AddChild(StackExchange.Profiling.Timing)">
             <summary>
             Add the parameter 'timing' to this Timing's Children collection.
             </summary>
-            <param name="timing">The timing.</param>
-            <remarks>Used outside this assembly for custom deserialization when creating an <see cref="T:StackExchange.Profiling.Storage.IStorage"/> implementation.</remarks>
+            <remarks>
+            Used outside this assembly for custom deserialization when creating an <see cref="T:StackExchange.Profiling.Storage.IStorage"/> implementation.
+            </remarks>
         </member>
-        <member name="M:StackExchange.Profiling.Timing.AddSqlTiming(StackExchange.Profiling.SqlTiming)">
+        <member name="M:StackExchange.Profiling.Timing.AddCustomTiming(System.String,StackExchange.Profiling.CustomTiming)">
             <summary>
-            Adds the parameter <c>sqlTiming</c> to this Timing's <c>SqlTimings</c> collection.
+            Adds <paramref name="customTiming"/> to this <see cref="T:StackExchange.Profiling.Timing"/> step's dictionary of 
+            custom timings, <see cref="P:StackExchange.Profiling.Timing.CustomTimings"/>.  Ensures that <see cref="P:StackExchange.Profiling.Timing.CustomTimings"/> is created, 
+            as well as the <paramref name="category"/>'s list.
             </summary>
-            <param name="sqlTiming">A SQL statement profiling that was executed in this Timing step.</param>
-            <remarks>Used outside this assembly for custom deserialization when creating an <see cref="T:StackExchange.Profiling.Storage.IStorage"/> implementation.</remarks>
+            <param name="category">The kind of custom timing, e.g. "http", "redis", "memcache"</param>
+            <param name="customTiming">Duration and command information</param>
         </member>
-        <member name="M:StackExchange.Profiling.Timing.GetExecutedCount(StackExchange.Profiling.Data.ExecuteType)">
+        <member name="M:StackExchange.Profiling.Timing.GetCustomTimingList(System.String)">
             <summary>
-            Returns the number of SQL statements of <paramref name="type"/> that were executed in this <see cref="T:StackExchange.Profiling.Timing"/>.
+            Returns the <see cref="T:StackExchange.Profiling.CustomTiming"/> list keyed to the <paramref name="category"/>, creating any collections when null.
             </summary>
-            <param name="type">The type.</param>
-            <returns>the execution count.</returns>
+            <param name="category">The kind of custom timings, e.g. "sql", "redis", "memcache"</param>
         </member>
         <member name="P:StackExchange.Profiling.Timing.Id">
             <summary>
@@ -4426,19 +4210,19 @@
             Gets or sets All sub-steps that occur within this Timing step. Add new children through <see cref="M:StackExchange.Profiling.Timing.AddChild(StackExchange.Profiling.Timing)"/>
             </summary>
         </member>
-        <member name="P:StackExchange.Profiling.Timing.KeyValues">
+        <member name="P:StackExchange.Profiling.Timing.CustomTimings">
             <summary>
-            Gets or sets Stores arbitrary key/value strings on this Timing step. Add new tuples through <see cref="M:StackExchange.Profiling.Timing.AddKeyValue(System.String,System.String)"/>.
+            <see cref="T:StackExchange.Profiling.CustomTiming"/> lists keyed by their type, e.g. "sql", "memcache", "redis", "http".
             </summary>
         </member>
-        <member name="P:StackExchange.Profiling.Timing.SqlTimings">
+        <member name="P:StackExchange.Profiling.Timing.CustomTimingsJson">
             <summary>
-            Gets or sets Any queries that occurred during this Timing step.
+            JSON representing the Custom Timings associated with this timing.
             </summary>
         </member>
-        <member name="P:StackExchange.Profiling.Timing.ParentTimingId">
+        <member name="P:StackExchange.Profiling.Timing.HasCustomTimings">
             <summary>
-            Gets or sets Needed for database deserialization and JSON serialization.
+            Returns true when there exists any <see cref="T:StackExchange.Profiling.CustomTiming"/> objects in this <see cref="P:StackExchange.Profiling.Timing.CustomTimings"/>.
             </summary>
         </member>
         <member name="P:StackExchange.Profiling.Timing.ParentTiming">
@@ -4447,14 +4231,14 @@
             </summary>
             <remarks>This will be null for the root (initial) Timing.</remarks>
         </member>
+        <member name="P:StackExchange.Profiling.Timing.ParentTimingId">
+            <summary>
+            The Unique Identifier identifying the parent timing of this Timing. Used for sql server storage.
+            </summary>
+        </member>
         <member name="P:StackExchange.Profiling.Timing.DurationWithoutChildrenMilliseconds">
             <summary>
             Gets the elapsed milliseconds in this step without any children's durations.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.Timing.SqlTimingsDurationMilliseconds">
-            <summary>
-            Gets the aggregate elapsed milliseconds of all <c>SqlTimings</c> executed in this Timing, excluding Children Timings.
             </summary>
         </member>
         <member name="P:StackExchange.Profiling.Timing.IsTrivial">
@@ -4468,17 +4252,6 @@
             Gets a value indicating whether this Timing has inner Timing steps.
             </summary>
         </member>
-        <member name="P:StackExchange.Profiling.Timing.HasSqlTimings">
-            <summary>
-            Gets a value indicating whether this Timing step collected SQL execution timings.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.Timing.HasDuplicateSqlTimings">
-            <summary>
-            Gets a value indicating whether this has duplicate SQL timings.
-            Returns true if any <see cref="T:StackExchange.Profiling.SqlTiming"/>s executed in this step are detected as duplicate statements.
-            </summary>
-        </member>
         <member name="P:StackExchange.Profiling.Timing.IsRoot">
             <summary>
             Gets a value indicating whether this Timing is the first one created in a MiniProfiler session.
@@ -4489,140 +4262,14 @@
             Gets a value indicating whether how far away this Timing is from the Profiler's Root.
             </summary>
         </member>
-        <member name="P:StackExchange.Profiling.Timing.ExecutedReaders">
-            <summary>
-            Gets how many SQL data readers were executed in this Timing step. Does not include queries in any child Timings.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.Timing.ExecutedScalars">
-            <summary>
-            Gets how many SQL scalar queries were executed in this Timing step. Does not include queries in any child Timings.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Profiling.Timing.ExecutedNonQueries">
-            <summary>
-            Gets how many SQL non-query statements were executed in this Timing step. Does not include queries in any child Timings.
-            </summary>
-        </member>
         <member name="P:StackExchange.Profiling.Timing.Profiler">
             <summary>
             Gets a reference to the containing profiler, allowing this Timing to affect the Head and get Stopwatch readings.
             </summary>
         </member>
-        <member name="T:StackExchange.Profiling.UI.MiniProfilerHandler">
+        <member name="P:StackExchange.Profiling.Timing.MiniProfilerId">
             <summary>
-            Understands how to route and respond to MiniProfiler UI URLS.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.UI.MiniProfilerHandler.ResourceCache">
-            <summary>
-            Embedded resource contents keyed by filename.
-            </summary>
-        </member>
-        <member name="F:StackExchange.Profiling.UI.MiniProfilerHandler.bypassLocalLoad">
-            <summary>
-            The bypass local load.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.RegisterRoutes">
-            <summary>
-            Usually called internally, sometimes you may clear the routes during the apps lifecycle, if you do that call this to bring back mini profiler.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.GetHttpHandler(System.Web.Routing.RequestContext)">
-            <summary>
-            Returns this <see cref="T:StackExchange.Profiling.UI.MiniProfilerHandler"/> to handle <paramref name="requestContext"/>.
-            </summary>
-            <param name="requestContext">
-            The request Context.
-            </param>
-            <returns>the http handler implementation</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.ProcessRequest(System.Web.HttpContext)">
-            <summary>
-            Returns either includes' <c>css/javascript</c> or results' html.
-            </summary>
-            <param name="context">The http context.</param>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.RenderIncludes(StackExchange.Profiling.MiniProfiler,System.Nullable{StackExchange.Profiling.RenderPosition},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
-            <summary>
-            Renders script tag found in "include.partial.html" - this is shared with all other language implementations, so if you change it, you MUST
-            provide changes for those other implementations, e.g. ruby.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.ResultList(System.Web.HttpContext)">
-            <summary>
-            The result list.
-            </summary>
-            <param name="context">The context.</param>
-            <returns>a string containing the result list.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.Index(System.Web.HttpContext)">
-            <summary>
-            the index (Landing) view.
-            </summary>
-            <param name="context">The context.</param>
-            <returns>a string containing the html.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.Includes(System.Web.HttpContext,System.String)">
-            <summary>
-            Handles rendering static content files.
-            </summary>
-            <param name="context">The context.</param>
-            <param name="path">The path.</param>
-            <returns>a string containing the content type.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.Results(System.Web.HttpContext)">
-            <summary>
-            Handles rendering a previous <c>MiniProfiler</c> session, identified by its <c>"?id=GUID"</c> on the query.
-            </summary>
-            <param name="context">The context.</param>
-            <returns>a string containing the rendered content</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.AuthorizeRequest(System.Web.HttpContext,System.Boolean,System.String@)">
-            <summary>
-            authorize the request. 
-            </summary>
-            <param name="context">The context.</param>
-            <param name="isList">is list.</param>
-            <param name="message">The message.</param>
-            <returns>true if the request is authorised.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.ResultsJson(System.Web.HttpContext,StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            set the JSON results and the content type.
-            </summary>
-            <param name="context">The context.</param>
-            <param name="profiler">The profiler.</param>
-            <returns>a string containing the JSON results.</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.ResultsFullPage(System.Web.HttpContext,StackExchange.Profiling.MiniProfiler)">
-            <summary>
-            results full page.
-            </summary>
-            <param name="context">The context.</param>
-            <param name="profiler">The profiler.</param>
-            <returns>a string containing the results page</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.GetResource(System.String)">
-            <summary>
-            get the resource.
-            </summary>
-            <param name="filename">The filename.</param>
-            <returns>a string containing the resource</returns>
-        </member>
-        <member name="M:StackExchange.Profiling.UI.MiniProfilerHandler.NotFound(System.Web.HttpContext,System.String,System.String)">
-            <summary>
-            Helper method that sets a proper 404 response code.
-            </summary>
-            <param name="context">The context.</param>
-            <param name="contentType">The content Type.</param>
-            <param name="message">The message.</param>
-            <returns>a string containing the 'not found' message.</returns>
-        </member>
-        <member name="P:StackExchange.Profiling.UI.MiniProfilerHandler.IsReusable">
-            <summary>
-            Gets a value indicating whether to keep things static and reusable.
+            The unique identifier used to identify the Profiler with which this Timing is associated. Used for sql storage.
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.WebRequestProfilerProvider">
@@ -4638,14 +4285,15 @@
             Public constructor.  This also registers any UI routes needed to display results
             </summary>
         </member>
-        <member name="M:StackExchange.Profiling.WebRequestProfilerProvider.Start(StackExchange.Profiling.ProfileLevel)">
+        <member name="M:StackExchange.Profiling.WebRequestProfilerProvider.Start(System.String)">
             <summary>
             Starts a new MiniProfiler and associates it with the current <see cref="P:System.Web.HttpContext.Current"/>.
             </summary>
-            <param name="level">
-            The level.
-            </param>
-            <returns>the profiler.</returns>
+        </member>
+        <member name="M:StackExchange.Profiling.WebRequestProfilerProvider.Start(StackExchange.Profiling.ProfileLevel,System.String)">
+            <summary>
+            Starts a new MiniProfiler and associates it with the current <see cref="P:System.Web.HttpContext.Current"/>.
+            </summary>
         </member>
         <member name="M:StackExchange.Profiling.WebRequestProfilerProvider.Stop(System.Boolean)">
             <summary>
@@ -4665,11 +4313,10 @@
             <summary>
             Returns the current profiler
             </summary>
-            <returns></returns>
         </member>
         <member name="P:StackExchange.Profiling.WebRequestProfilerProvider.Current">
             <summary>
-            Gets the currently running MiniProfiler for the current HttpContext; null if no MiniProfiler was <see cref="M:StackExchange.Profiling.WebRequestProfilerProvider.Start(StackExchange.Profiling.ProfileLevel)"/>ed.
+            Gets the currently running MiniProfiler for the current HttpContext; null if no MiniProfiler was <see cref="M:StackExchange.Profiling.WebRequestProfilerProvider.Start(System.String)"/>ed.
             </summary>
         </member>
         <member name="T:StackExchange.Profiling.WebRequestProfilerProvider.Settings">
