@@ -109,10 +109,10 @@ namespace Four2n.Orchard.MiniProfiler.Filters
         private bool IsActivable()
         {
             // activate on front-end only
-            if (AdminFilter.IsApplied(new RequestContext(this.workContext.HttpContext, new RouteData())))
-            {
-                return false;
-            }
+            //if (AdminFilter.IsApplied(new RequestContext(this.workContext.HttpContext, new RouteData())))
+            //{
+            //    return false;
+            //}
 
             // if not logged as a site owner, still activate if it's a local request (development machine)
             if (!this.authorizer.Authorize(StandardPermissions.SiteOwner))
