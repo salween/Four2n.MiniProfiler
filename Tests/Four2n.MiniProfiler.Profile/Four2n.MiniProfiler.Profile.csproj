@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -47,10 +47,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Go.cmd" />
-    <None Include="Initialize.cmd" />
-    <None Include="StartTestServer.cmd" />
-    <None Include="_environment.cmd" />
+    <Content Include="Go.cmd" />
+    <Content Include="Initialize.cmd" />
+    <Content Include="StartTestServer.cmd" />
+    <Content Include="_environment.cmd" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Scripts\scenario.txt" />
