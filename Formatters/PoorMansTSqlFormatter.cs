@@ -12,14 +12,22 @@ using PoorMansTSqlFormatterLib;
 using PoorMansTSqlFormatterLib.Formatters;
 using StackExchange.Profiling;
 using StackExchange.Profiling.SqlFormatters;
+using System;
 
 namespace Four2n.Orchard.MiniProfiler.Formatters {
     public class PoorMansTSqlFormatter : ISqlFormatter {
         public string FormatSql(string commandText, List<SqlTimingParameter> parameters) {
 
             var sqlFormatter = new SqlServerFormatter();
-            var sqlFormat = sqlFormatter.GetFormattedSql(commandText,parameters);
-
+            string sqlFormat;
+            try
+            {
+                sqlFormat = sqlFormatter.GetFormattedSql(commandText, parameters);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return string.Format("Could not format SQL: {0} params {1}", commandText, parameters);
+            }
             var poorMansFormatter = new TSqlStandardFormatter();
             var fullFormatter = new SqlFormattingManager(poorMansFormatter);
             return fullFormatter.Format(sqlFormat);
