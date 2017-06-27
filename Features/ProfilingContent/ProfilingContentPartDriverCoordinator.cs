@@ -58,7 +58,7 @@ namespace Four2n.MiniProfilter.Features.ProfilingContent.Overrides {
 
                 if (result != null) {
                     var key2 = "DriverApply:" + driver.GetType().FullName;
-                    _profiler.StepStart(key2, String.Format("ApplyDriver", driver.GetType().FullName));
+                    _profiler.StepStart(key2, String.Format("ApplyDriver: {0}", driver.GetType().FullName));
                     result.Apply(context);
                     _profiler.StepStop(key2);
                 }
