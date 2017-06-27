@@ -108,7 +108,8 @@ namespace Four2n.Orchard.MiniProfiler.Filters
 
         private bool IsActivable()
         {
-            // activate on front-end only
+            // activate on front-end only, from
+            // https://weblogs.asp.net/bleroy/making-miniprofiler-work-in-the-orchard-dashboard
             //if (AdminFilter.IsApplied(new RequestContext(this.workContext.HttpContext, new RouteData())))
             //{
             //    return false;
